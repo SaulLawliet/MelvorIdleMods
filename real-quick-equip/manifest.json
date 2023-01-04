@@ -1,0 +1,5 @@
+{
+	"namespace": "realQuickEquip",
+	"icon": "icon.png",
+	"setup": "setup.mjs"
+}

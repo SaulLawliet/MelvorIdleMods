@@ -1,0 +1,4 @@
+{
+	"namespace": "ShowArtisanRecipePrice",
+	"setup": "setup.mjs"
+}

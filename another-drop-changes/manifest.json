@@ -1,0 +1,4 @@
+{
+	"namespace": "OtherDropChanges",
+	"setup": "setup.mjs"
+}
