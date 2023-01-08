@@ -1213,9 +1213,12 @@ export async function setup(ctx) {
     }
 
     const numToStr = (num) => {
-        const a = num.toString()
-        const b = num.toFixed(2)
-        return a.length < b.length ? a : b;
+        if (num.toFixed) {
+            const a = num.toString();
+            const b = num.toFixed(2);
+            return a.length < b.length ? a : b;
+        }
+        return num;
     }
 
     const createDescriptionsGroup = (careModifiers, skill) => {
