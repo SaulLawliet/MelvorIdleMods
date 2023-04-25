@@ -1,7 +1,9 @@
 # MelvorIdleMods
+
 [https://mod.io/g/melvoridle](https://mod.io/g/melvoridle)
 
 ## List
+
 - [A Bit Cheating](https://mod.io/g/melvoridle/m/a-bit-cheating)
 - [Another Drop Changes](https://mod.io/g/melvoridle/m/another-drop-changes)
 - [Fix Bugs for Melvor](https://mod.io/g/melvoridle/m/fix-bugs-for-melvor)

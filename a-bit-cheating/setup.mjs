@@ -45,13 +45,13 @@ export function setup(ctx) {
         if (generalSettings.get('agility-cost-reductions')) {
             const agilityObstacleInfo = document.getElementById('agility-obstacle-info-1');
             if (agilityObstacleInfo) {
-                document.getElementById('agility-obstacle-info-1').textContent = templateLangString('MENU_TEXT', 'OBSTACLE_INFO_1', {
+                document.getElementById('agility-obstacle-info-1').textContent = templateLangString('MENU_TEXT_OBSTACLE_INFO_1', {
                     reductionCap: `100`
                 });
             }
 
             ctx.patch(Agility, 'onLoad').after(function() {
-                document.getElementById('agility-obstacle-info-1').textContent = templateLangString('MENU_TEXT', 'OBSTACLE_INFO_1', {
+                document.getElementById('agility-obstacle-info-1').textContent = templateLangString('MENU_TEXT_OBSTACLE_INFO_1', {
                     reductionCap: `100`
                 });
             });
