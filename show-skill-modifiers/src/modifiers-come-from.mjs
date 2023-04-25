@@ -52,6 +52,7 @@ export class ModifiersComeFrom {
     }
 
     addModifiers(source, modifiers, count = 1) {
+        if (!modifiers) return; // some is undefined.
         if (modifiers.constructor.name == 'Map') {
             modifiers.forEach((value, key) => {
                 this.addModifier(source, key, value, count);
