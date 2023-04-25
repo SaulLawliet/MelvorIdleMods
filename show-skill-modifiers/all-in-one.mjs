@@ -8,7 +8,7 @@ class ISkill {
     checkPoolTierActive(extra, tier, value) {
         if (this.skill.isPoolTierActive(tier)) {
             extra.sum += value;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY_POOL_CHECKPOINTS')}: ${masteryCheckpoints[tier]}%`, value]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY_POOL_CHECKPOINTS')}: ${masteryCheckpoints[tier]}%`, value]);
         }
     }
 
@@ -90,7 +90,7 @@ class IThieving extends IGatheringSkill {
     appendGroupForFlatInterval(extra) {
         if (this.getMasteryLevel() >= 50) {
             extra.sum += 200;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 50`, 200]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 50`, 200]);
         }
         this.checkPoolTierActive(extra, 1, 200);
     }
@@ -100,7 +100,7 @@ class IThieving extends IGatheringSkill {
     appendGroupForDoubling(extra) {
         const npcSleightOfHand = this.skill.getNPCSleightOfHand(this.getAction());
         extra.sum += npcSleightOfHand;
-        extra.descriptions.push([templateLangString('GAME_GUIDE', '90').replace(':', '<br>').replace('：', '<br>'), npcSleightOfHand]);
+        extra.descriptions.push([templateLangString('GAME_GUIDE_90').replace(':', '<br>').replace('：', '<br>'), npcSleightOfHand]);
     }
 }
 
@@ -169,10 +169,10 @@ class IHerblore extends IArtisanSkill {
         const masteryLevel = this.getMasteryLevel();
         if (masteryLevel > 1) {
             extra.sum += (masteryLevel - 1) * 0.2;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 2 ~ ${masteryLevel}`, (masteryLevel - 1) * 0.2]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 2 ~ ${masteryLevel}`, (masteryLevel - 1) * 0.2]);
             if (masteryLevel >= 99) {
                 extra.sum += 5;
-                extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 99`, 5]);
+                extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 99`, 5]);
             }
         }
         this.checkPoolTierActive(extra, 2, 5);
@@ -191,11 +191,11 @@ class ISmithing extends IArtisanSkill {
         const times = Math.floor((masteryLevel + 10) / 20);
         for (let i = 0; i < times; i++) {
             extra.sum += 5;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: ${10 + 20 * (i)}`, 5]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: ${10 + 20 * (i)}`, 5]);
         }
         if (masteryLevel >= 99) {
             extra.sum += 10;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 99`, 10]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 99`, 10]);
         }
         this.checkPoolTierActive(extra, 3, 10);
     }
@@ -212,11 +212,11 @@ class ISmithing extends IArtisanSkill {
         if (times > 0) {
             for (let i = 0; i < times; i++) {
                 extra.sum += 5;
-                extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: ${20 * (i + 1)}`, 5]);
+                extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: ${20 * (i + 1)}`, 5]);
             }
             if (masteryLevel >= 99) {
                 extra.sum += 10;
-                extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 99`, 10]);
+                extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 99`, 10]);
             }
         }
 
@@ -277,10 +277,10 @@ class ICrafting extends IArtisanSkill {
         const masteryLevel = this.getMasteryLevel();
         if (masteryLevel > 1) {
             extra.sum += (masteryLevel - 1) * 0.2;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 2 ~ ${masteryLevel}`, (masteryLevel - 1) * 0.2]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 2 ~ ${masteryLevel}`, (masteryLevel - 1) * 0.2]);
             if (masteryLevel >= 99) {
                 extra.sum += 5;
-                extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 99`, 5]);
+                extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 99`, 5]);
             }
         }
         this.checkPoolTierActive(extra, 1, 5);
@@ -303,10 +303,10 @@ class IFletching extends IArtisanSkill {
         const masteryLevel = this.getMasteryLevel();
         if (masteryLevel > 1) {
             extra.sum += (masteryLevel - 1) * 0.2;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 2 ~ ${masteryLevel}`, (masteryLevel - 1) * 0.2]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 2 ~ ${masteryLevel}`, (masteryLevel - 1) * 0.2]);
             if (masteryLevel >= 99) {
                 extra.sum += 5;
-                extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 99`, 5]);
+                extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 99`, 5]);
             }
         }
     }
@@ -375,11 +375,11 @@ class ICooking extends ICraftingSkill {
             if (times > 0) {
                 for (let i = 0; i < times; i++) {
                     extra.sum += 5;
-                    extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: ${10 * (i + 1)}`, 5]);
+                    extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: ${10 * (i + 1)}`, 5]);
                 }
                 if (masteryLevel >= 99) {
                     extra.sum += 50;
-                    extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 99`, 50]);
+                    extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 99`, 50]);
                 }
             }
         }
@@ -389,12 +389,12 @@ class ICooking extends ICraftingSkill {
 
     appendGroupForCookingSuccess(extra) {
         extra.sum += Cooking.baseSuccessChance;
-        extra.descriptions.push([`${templateLangString('SKILL_CATEGORY', 'Cooking_Fire')}`, Cooking.baseSuccessChance]);
+        extra.descriptions.push([`${templateLangString('SKILL_CATEGORY_Cooking_Fire')}`, Cooking.baseSuccessChance]);
 
         if (this.getAction().hasMastery) {
             const masteryLevel = this.getMasteryLevel();
             extra.sum += masteryLevel * 0.6;
-            extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 1 ~ ${masteryLevel}`, masteryLevel * 0.6]);
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 1 ~ ${masteryLevel}`, masteryLevel * 0.6]);
         }
     }
 }
@@ -411,7 +411,7 @@ class IFiremaking extends ICraftingSkill {
             extra.sum += 5;
             const description = `${game.items.getObjectByID('melvorF:Summoning_Familiar_Bear').name}
               + ${game.items.getObjectByID('melvorF:Summoning_Familiar_Devil').name}
-              + ${templateLangString('POTION_NAME', 'Controlled_Heat_Potion')}`
+              + ${templateLangString('POTION_NAME_Controlled_Heat_Potion')}`
             extra.descriptions.push([description, 5]);
         }
     }
@@ -424,7 +424,7 @@ class IFiremaking extends ICraftingSkill {
         this.checkPoolTierActive(extra, 1, 10);
         const masteryLevel = this.getMasteryLevel();
         extra.sum += masteryLevel * 0.1;
-        extra.descriptions.push([`${templateLangString('MENU_TEXT', 'MASTERY')} Lv: 1 ~ ${masteryLevel}`, masteryLevel * 0.1]);
+        extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 1 ~ ${masteryLevel}`, masteryLevel * 0.1]);
     }
 }
 
@@ -633,10 +633,10 @@ class ModifiersComeFrom {
 
     computeTownship() {
         const skill = game.skills.registeredObjects.get("melvorD:Township");
-        this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU', 'WORSHIP')}`, skill.townData.worship.modifiers);
+        this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')}`, skill.townData.worship.modifiers);
         skill.WORSHIP_CHECKPOINTS.forEach((checkpoint, id) => {
             if (skill.worshipPercent >= checkpoint)
-                this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU', 'WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id]);
+                this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id]);
         });
 
         skill.buildings.forEach((building) => {
@@ -648,7 +648,7 @@ class ModifiersComeFrom {
     computePetManager() {
         game.petManager.unlocked.forEach((pet) => {
             if (!pet.activeInRaid) {
-                this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_4')}: ${pet.name}`, pet.modifiers);
+                this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_4')}: ${pet.name}`, pet.modifiers);
             }
         });
     }
@@ -669,7 +669,7 @@ class ModifiersComeFrom {
                     if (purchase._localID.startsWith('Extra_Equipment_Set_')) {
                         purchaseName += ` ${purchase._localID.replace('Extra_Equipment_Set_', '')}`
                     }
-                    this.addModifiers(`${getLangString('PAGE_NAME', 'Shop')}: ${purchaseName}`, purchase.contains.modifiers, count);
+                    this.addModifiers(`${getLangString('PAGE_NAME_Shop')}: ${purchaseName}`, purchase.contains.modifiers, count);
                 }
             }
         });
@@ -681,7 +681,7 @@ class ModifiersComeFrom {
             const item = slot.item;
             if (slot.providesStats) {
                 if (item.modifiers !== undefined)
-                    this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_2')}: ${item.name}`, item.modifiers);
+                    this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${item.name}`, item.modifiers);
             }
         });
 
@@ -710,7 +710,7 @@ class ModifiersComeFrom {
 
     computePrayer() {
         game.combat.player.activePrayers.forEach((prayer) => {
-            this.addModifiers(`${getLangString('SKILL_NAME', 'Prayer')}: ${prayer.name}`, prayer.modifiers);
+            this.addModifiers(`${getLangString('SKILL_NAME_Prayer')}: ${prayer.name}`, prayer.modifiers);
         });
     }
 
@@ -721,11 +721,11 @@ class ModifiersComeFrom {
                 game.stats.Items.get(bankSlotTokenItem, ItemStats.TimesTransformed) -
                 game.bank.getQty(bankSlotTokenItem);
         if (bankSlotTokenClaimed > 0) {
-            this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_2')}: ${bankSlotTokenItem.name}`, bankSlotTokenItem.modifiers, bankSlotTokenClaimed);
+            this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${bankSlotTokenItem.name}`, bankSlotTokenItem.modifiers, bankSlotTokenClaimed);
         }
 
         if (game.combat.player.equipment.checkForItemID("melvorF:Knights_Defender") && game.combat.player.attackType === 'melee') {
-            this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_2')}: ${game.items.getObjectByID('melvorF:Knights_Defender').name}`, {
+            this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${game.items.getObjectByID('melvorF:Knights_Defender').name}`, {
                 decreasedAttackInterval: 100,
                 decreasedDamageReduction: 3,
             });
@@ -734,14 +734,14 @@ class ModifiersComeFrom {
 
     computeAttackStyle() {
         if (game.combat.player.attackStyle !== undefined)
-            this.addModifiers(`${getLangString('COMBAT_MISC', '31')}`, game.combat.player.attackStyle.modifiers);
+            this.addModifiers(`${getLangString('COMBAT_MISC_31')}`, game.combat.player.attackStyle.modifiers);
     }
 
     computeAurora() {
         if (game.combat.player.canAurora) {
             const aurora = game.combat.player.spellSelection.aurora;
             if (aurora !== undefined) {
-                this.addModifiers(`${getLangString('COMBAT_MISC', 'AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
+                this.addModifiers(`${getLangString('COMBAT_MISC_AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
             }
         }
     }
@@ -840,7 +840,7 @@ export async function setup(ctx) {
         `;
     }
 
-    const intervalTooltip = appendTooltip(`<div class="text-center text-warning">${getLangString('MENU_TEXT','TOOLTIP_INTERVAL')}<br><small>${getLangString('MENU_TEXT','INCLUSIVE_OF_BONUSES')}</small></div>`);
+    const intervalTooltip = appendTooltip(`<div class="text-center text-warning">${getLangString('MENU_TEXT_TOOLTIP_INTERVAL')}<br><small>${getLangString('MENU_TEXT_INCLUSIVE_OF_BONUSES')}</small></div>`);
 
     ctx.patch(XPIcon, 'getTooltipContent').after(function (returnValue) {
         return appendTooltip(returnValue);
@@ -905,8 +905,8 @@ export async function setup(ctx) {
             SwalLocale.fire({
                 html: html,
                 showCancelButton: true,
-                confirmButtonText: getLangString('ASTROLOGY', 'BTN_2'),
-                cancelButtonText: getLangString('FARMING_MISC', '24'),
+                confirmButtonText: getLangString('ASTROLOGY_BTN_2'),
+                cancelButtonText: getLangString('FARMING_MISC_24'),
             }).then((result) => {
                 if (result.value) {
                     showSkillModifiers();
@@ -923,7 +923,7 @@ export async function setup(ctx) {
         let passives = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${name}</h5>`;
         passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small></small></h5>`;
         if (!generalSettings.get('show-checkpoints') && skill && skill.hasMastery) {
-            passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small>(Does not include ${getLangString('MENU_TEXT','MASTERY_POOL_CHECKPOINTS')})</small></h5>`;
+            passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small>(Does not include ${getLangString('MENU_TEXT_MASTERY_POOL_CHECKPOINTS')})</small></h5>`;
         }
         passives += descriptions.map(([text, textClass, key, value, skill]) => {
             let html = `<h5 class="font-w400 font-size-sm mb-1 ${textClass}">${text}`;
@@ -1154,7 +1154,7 @@ export async function setup(ctx) {
                     status = 'Inactivated'
                 }
                 if (status !== null) {
-                    descriptions.push(makeDescription(getLangString('MASTERY_CHECKPOINT', `${localID}_${i}`), status));
+                    descriptions.push(makeDescription(getLangString(`MASTERY_CHECKPOINT_${localID}_${i}`), status));
                 }
             }
         }
@@ -1199,12 +1199,12 @@ export async function setup(ctx) {
         switch (localID) {
             case 'Fishing':
                 if (skill.secretAreaUnlocked || showLocked) {
-                    descriptions.push(makeDescription(getLangString('MISC_STRING', 'MESSAGE_IN_BOTTLE_UNLOCK'), skill.secretAreaUnlocked ? '' : 'Locked'));
+                    descriptions.push(makeDescription(getLangString('MISC_STRING_MESSAGE_IN_BOTTLE_UNLOCK'), skill.secretAreaUnlocked ? '' : 'Locked'));
                 }
                 break;
             case 'Shop':
                 if (game.merchantsPermitRead || showLocked) {
-                    descriptions.push(makeDescription(getLangString('MISC_STRING', 'MERCHANTS_PERMIT_UNLOCK'), game.merchantsPermitRead ? '' : 'Locked'));
+                    descriptions.push(makeDescription(getLangString('MISC_STRING_MERCHANTS_PERMIT_UNLOCK'), game.merchantsPermitRead ? '' : 'Locked'));
                 }
                 break;
         }
@@ -1342,7 +1342,7 @@ export async function setup(ctx) {
     
         if (extra.sum > 0) {
             group.sum += extra.sum;
-            extra.descriptions[0][0] = `${templateLangString('PAGE_NAME_MISC', '2')}: ${title.replace('__V__', title.endsWith('s') ? (extra.sum / 1000).toFixed(2) : numToStr(extra.sum))}`;
+            extra.descriptions[0][0] = `${templateLangString('PAGE_NAME_MISC_2')}: ${title.replace('__V__', title.endsWith('s') ? (extra.sum / 1000).toFixed(2) : numToStr(extra.sum))}`;
             group.block.push(extra.descriptions);
         }
     };
@@ -1363,7 +1363,7 @@ export async function setup(ctx) {
         const final = base * (1 + group.sum / 100);
         const actual = iSkill.getActualXP();
     
-        showBonusesNormal(templateLangString('MENU_TEXT','TOOLTIP_SKILL_XP',{xp:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
+        showBonusesNormal(templateLangString('MENU_TEXT_TOOLTIP_SKILL_XP',{xp:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
     };
     
     const showMasteryXP = (iSkill) => {
@@ -1380,7 +1380,7 @@ export async function setup(ctx) {
         const final = base * (1 + group.sum / 100);
         const actual = iSkill.getActualMasteryXP();
     
-        showBonusesNormal(templateLangString('MENU_TEXT','TOOLTIP_MASTERY_XP',{value:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
+        showBonusesNormal(templateLangString('MENU_TEXT_TOOLTIP_MASTERY_XP',{value:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
     };
     
     const showInterval = (iSkill) => {
@@ -1401,7 +1401,7 @@ export async function setup(ctx) {
         const actual = iSkill.getActualInterval();
     
         const block = Array.prototype.concat.apply([], [groups[0].block, groups[1].block]);
-        showBonusesInterval(`${formatFixed(final/1000, 2)}s. ${getLangString('MENU_TEXT','TOOLTIP_INTERVAL')}`, block, final, base, actual, percent, flat);
+        showBonusesInterval(`${formatFixed(final/1000, 2)}s. ${getLangString('MENU_TEXT_TOOLTIP_INTERVAL')}`, block, final, base, actual, percent, flat);
     };
     
     const showDoubling = (iSkill) => {
@@ -1416,7 +1416,7 @@ export async function setup(ctx) {
     
         const actual = iSkill.getActualDoubling();
     
-        showBonuses(getLangString('MENU_TEXT','TOOLTIP_DOUBLE'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
+        showBonuses(getLangString('MENU_TEXT_TOOLTIP_DOUBLE'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
     };
     
     const showPreservation = (iSkill) => {
@@ -1431,12 +1431,12 @@ export async function setup(ctx) {
     
         const actual = iSkill.getActualPreservation();
     
-        showBonuses(getLangString('MENU_TEXT','TOOLTIP_PRESERVE'), group.block, group.sum, actual, clampValue(group.sum, 0, 80)); // TODO
+        showBonuses(getLangString('MENU_TEXT_TOOLTIP_PRESERVE'), group.block, group.sum, actual, clampValue(group.sum, 0, 80)); // TODO
     };
     
     const showPerfectCook = (iSkill) => {
         if (!game.settings.enablePerfectCooking) {
-            showBonuses(getLangString('MENU_TEXT','TOOLTIP_PERFECT_COOK'), [], 0, 0, 0);
+            showBonuses(getLangString('MENU_TEXT_TOOLTIP_PERFECT_COOK'), [], 0, 0, 0);
             return;
         }
     
@@ -1450,7 +1450,7 @@ export async function setup(ctx) {
     
         const actual = iSkill.getActualPerfectCook();
     
-        showBonuses(getLangString('MENU_TEXT','TOOLTIP_PERFECT_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
+        showBonuses(getLangString('MENU_TEXT_TOOLTIP_PERFECT_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
     };
     
     const showCookingSuccess = (iSkill) => {
@@ -1466,7 +1466,7 @@ export async function setup(ctx) {
     
         const chanceCap = 100 - game.modifiers.decreasedCookingSuccessCap;
     
-        showBonuses(getLangString('MENU_TEXT','TOOLTIP_SUCCESSFUL_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, chanceCap));
+        showBonuses(getLangString('MENU_TEXT_TOOLTIP_SUCCESSFUL_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, chanceCap));
     };
 
     ctx.api({

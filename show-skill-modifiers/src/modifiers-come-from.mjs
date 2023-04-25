@@ -203,10 +203,10 @@ export class ModifiersComeFrom {
 
     computeTownship() {
         const skill = game.skills.registeredObjects.get("melvorD:Township");
-        this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU', 'WORSHIP')}`, skill.townData.worship.modifiers);
+        this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')}`, skill.townData.worship.modifiers);
         skill.WORSHIP_CHECKPOINTS.forEach((checkpoint, id) => {
             if (skill.worshipPercent >= checkpoint)
-                this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU', 'WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id]);
+                this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id]);
         });
 
         skill.buildings.forEach((building) => {
@@ -218,7 +218,7 @@ export class ModifiersComeFrom {
     computePetManager() {
         game.petManager.unlocked.forEach((pet) => {
             if (!pet.activeInRaid) {
-                this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_4')}: ${pet.name}`, pet.modifiers);
+                this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_4')}: ${pet.name}`, pet.modifiers);
             }
         });
     }
@@ -239,7 +239,7 @@ export class ModifiersComeFrom {
                     if (purchase._localID.startsWith('Extra_Equipment_Set_')) {
                         purchaseName += ` ${purchase._localID.replace('Extra_Equipment_Set_', '')}`
                     }
-                    this.addModifiers(`${getLangString('PAGE_NAME', 'Shop')}: ${purchaseName}`, purchase.contains.modifiers, count);
+                    this.addModifiers(`${getLangString('PAGE_NAME_Shop')}: ${purchaseName}`, purchase.contains.modifiers, count);
                 }
             }
         });
@@ -251,7 +251,7 @@ export class ModifiersComeFrom {
             const item = slot.item;
             if (slot.providesStats) {
                 if (item.modifiers !== undefined)
-                    this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_2')}: ${item.name}`, item.modifiers);
+                    this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${item.name}`, item.modifiers);
             }
         });
 
@@ -280,7 +280,7 @@ export class ModifiersComeFrom {
 
     computePrayer() {
         game.combat.player.activePrayers.forEach((prayer) => {
-            this.addModifiers(`${getLangString('SKILL_NAME', 'Prayer')}: ${prayer.name}`, prayer.modifiers);
+            this.addModifiers(`${getLangString('SKILL_NAME_Prayer')}: ${prayer.name}`, prayer.modifiers);
         });
     }
 
@@ -291,11 +291,11 @@ export class ModifiersComeFrom {
                 game.stats.Items.get(bankSlotTokenItem, ItemStats.TimesTransformed) -
                 game.bank.getQty(bankSlotTokenItem);
         if (bankSlotTokenClaimed > 0) {
-            this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_2')}: ${bankSlotTokenItem.name}`, bankSlotTokenItem.modifiers, bankSlotTokenClaimed);
+            this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${bankSlotTokenItem.name}`, bankSlotTokenItem.modifiers, bankSlotTokenClaimed);
         }
 
         if (game.combat.player.equipment.checkForItemID("melvorF:Knights_Defender") && game.combat.player.attackType === 'melee') {
-            this.addModifiers(`${getLangString('PAGE_NAME', 'CompletionLog_SUBCATEGORY_2')}: ${game.items.getObjectByID('melvorF:Knights_Defender').name}`, {
+            this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${game.items.getObjectByID('melvorF:Knights_Defender').name}`, {
                 decreasedAttackInterval: 100,
                 decreasedDamageReduction: 3,
             });
@@ -304,14 +304,14 @@ export class ModifiersComeFrom {
 
     computeAttackStyle() {
         if (game.combat.player.attackStyle !== undefined)
-            this.addModifiers(`${getLangString('COMBAT_MISC', '31')}`, game.combat.player.attackStyle.modifiers);
+            this.addModifiers(`${getLangString('COMBAT_MISC_31')}`, game.combat.player.attackStyle.modifiers);
     }
 
     computeAurora() {
         if (game.combat.player.canAurora) {
             const aurora = game.combat.player.spellSelection.aurora;
             if (aurora !== undefined) {
-                this.addModifiers(`${getLangString('COMBAT_MISC', 'AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
+                this.addModifiers(`${getLangString('COMBAT_MISC_AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
             }
         }
     }

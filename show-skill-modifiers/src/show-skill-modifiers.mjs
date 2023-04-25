@@ -38,8 +38,8 @@ const showModifiersComeFrom = (modifier, modifierValue, skillId, showBackButton 
         SwalLocale.fire({
             html: html,
             showCancelButton: true,
-            confirmButtonText: getLangString('ASTROLOGY', 'BTN_2'),
-            cancelButtonText: getLangString('FARMING_MISC', '24'),
+            confirmButtonText: getLangString('ASTROLOGY_BTN_2'),
+            cancelButtonText: getLangString('FARMING_MISC_24'),
         }).then((result) => {
             if (result.value) {
                 showSkillModifiers();
@@ -56,7 +56,7 @@ const viewModifiers = (name, skill, descriptions) => {
     let passives = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${name}</h5>`;
     passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small></small></h5>`;
     if (!generalSettings.get('show-checkpoints') && skill && skill.hasMastery) {
-        passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small>(Does not include ${getLangString('MENU_TEXT','MASTERY_POOL_CHECKPOINTS')})</small></h5>`;
+        passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small>(Does not include ${getLangString('MENU_TEXT_MASTERY_POOL_CHECKPOINTS')})</small></h5>`;
     }
     passives += descriptions.map(([text, textClass, key, value, skill]) => {
         let html = `<h5 class="font-w400 font-size-sm mb-1 ${textClass}">${text}`;
@@ -287,7 +287,7 @@ const getMasteryPoolCheckpointsDescriptions = (skill, localID) => {
                 status = 'Inactivated'
             }
             if (status !== null) {
-                descriptions.push(makeDescription(getLangString('MASTERY_CHECKPOINT', `${localID}_${i}`), status));
+                descriptions.push(makeDescription(getLangString(`MASTERY_CHECKPOINT_${localID}_${i}`), status));
             }
         }
     }
@@ -332,12 +332,12 @@ const showSkillModifiers = () => {
     switch (localID) {
         case 'Fishing':
             if (skill.secretAreaUnlocked || showLocked) {
-                descriptions.push(makeDescription(getLangString('MISC_STRING', 'MESSAGE_IN_BOTTLE_UNLOCK'), skill.secretAreaUnlocked ? '' : 'Locked'));
+                descriptions.push(makeDescription(getLangString('MISC_STRING_MESSAGE_IN_BOTTLE_UNLOCK'), skill.secretAreaUnlocked ? '' : 'Locked'));
             }
             break;
         case 'Shop':
             if (game.merchantsPermitRead || showLocked) {
-                descriptions.push(makeDescription(getLangString('MISC_STRING', 'MERCHANTS_PERMIT_UNLOCK'), game.merchantsPermitRead ? '' : 'Locked'));
+                descriptions.push(makeDescription(getLangString('MISC_STRING_MERCHANTS_PERMIT_UNLOCK'), game.merchantsPermitRead ? '' : 'Locked'));
             }
             break;
     }

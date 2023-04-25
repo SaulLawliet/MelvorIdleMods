@@ -132,7 +132,7 @@ const appendGroup = (group, func, title) => {
 
     if (extra.sum > 0) {
         group.sum += extra.sum;
-        extra.descriptions[0][0] = `${templateLangString('PAGE_NAME_MISC', '2')}: ${title.replace('__V__', title.endsWith('s') ? (extra.sum / 1000).toFixed(2) : numToStr(extra.sum))}`;
+        extra.descriptions[0][0] = `${templateLangString('PAGE_NAME_MISC_2')}: ${title.replace('__V__', title.endsWith('s') ? (extra.sum / 1000).toFixed(2) : numToStr(extra.sum))}`;
         group.block.push(extra.descriptions);
     }
 };
@@ -153,7 +153,7 @@ const showXP = (iSkill) => {
     const final = base * (1 + group.sum / 100);
     const actual = iSkill.getActualXP();
 
-    showBonusesNormal(templateLangString('MENU_TEXT','TOOLTIP_SKILL_XP',{xp:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
+    showBonusesNormal(templateLangString('MENU_TEXT_TOOLTIP_SKILL_XP',{xp:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
 };
 
 const showMasteryXP = (iSkill) => {
@@ -170,7 +170,7 @@ const showMasteryXP = (iSkill) => {
     const final = base * (1 + group.sum / 100);
     const actual = iSkill.getActualMasteryXP();
 
-    showBonusesNormal(templateLangString('MENU_TEXT','TOOLTIP_MASTERY_XP',{value:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
+    showBonusesNormal(templateLangString('MENU_TEXT_TOOLTIP_MASTERY_XP',{value:`${numToStr(final)}`}), group.block, final, base, actual, group.sum);
 };
 
 const showInterval = (iSkill) => {
@@ -191,7 +191,7 @@ const showInterval = (iSkill) => {
     const actual = iSkill.getActualInterval();
 
     const block = Array.prototype.concat.apply([], [groups[0].block, groups[1].block]);
-    showBonusesInterval(`${formatFixed(final/1000, 2)}s. ${getLangString('MENU_TEXT','TOOLTIP_INTERVAL')}`, block, final, base, actual, percent, flat);
+    showBonusesInterval(`${formatFixed(final/1000, 2)}s. ${getLangString('MENU_TEXT_TOOLTIP_INTERVAL')}`, block, final, base, actual, percent, flat);
 };
 
 const showDoubling = (iSkill) => {
@@ -206,7 +206,7 @@ const showDoubling = (iSkill) => {
 
     const actual = iSkill.getActualDoubling();
 
-    showBonuses(getLangString('MENU_TEXT','TOOLTIP_DOUBLE'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
+    showBonuses(getLangString('MENU_TEXT_TOOLTIP_DOUBLE'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
 };
 
 const showPreservation = (iSkill) => {
@@ -221,12 +221,12 @@ const showPreservation = (iSkill) => {
 
     const actual = iSkill.getActualPreservation();
 
-    showBonuses(getLangString('MENU_TEXT','TOOLTIP_PRESERVE'), group.block, group.sum, actual, clampValue(group.sum, 0, 80)); // TODO
+    showBonuses(getLangString('MENU_TEXT_TOOLTIP_PRESERVE'), group.block, group.sum, actual, clampValue(group.sum, 0, 80)); // TODO
 };
 
 const showPerfectCook = (iSkill) => {
     if (!game.settings.enablePerfectCooking) {
-        showBonuses(getLangString('MENU_TEXT','TOOLTIP_PERFECT_COOK'), [], 0, 0, 0);
+        showBonuses(getLangString('MENU_TEXT_TOOLTIP_PERFECT_COOK'), [], 0, 0, 0);
         return;
     }
 
@@ -240,7 +240,7 @@ const showPerfectCook = (iSkill) => {
 
     const actual = iSkill.getActualPerfectCook();
 
-    showBonuses(getLangString('MENU_TEXT','TOOLTIP_PERFECT_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
+    showBonuses(getLangString('MENU_TEXT_TOOLTIP_PERFECT_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, 100));
 };
 
 const showCookingSuccess = (iSkill) => {
@@ -256,7 +256,7 @@ const showCookingSuccess = (iSkill) => {
 
     const chanceCap = 100 - game.modifiers.decreasedCookingSuccessCap;
 
-    showBonuses(getLangString('MENU_TEXT','TOOLTIP_SUCCESSFUL_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, chanceCap));
+    showBonuses(getLangString('MENU_TEXT_TOOLTIP_SUCCESSFUL_COOK'), group.block, group.sum, actual, clampValue(group.sum, 0, chanceCap));
 };
 
 export {

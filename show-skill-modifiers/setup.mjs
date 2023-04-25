@@ -81,7 +81,7 @@ export async function setup(ctx) {
         `;
     }
 
-    const intervalTooltip = appendTooltip(`<div class="text-center text-warning">${getLangString('MENU_TEXT','TOOLTIP_INTERVAL')}<br><small>${getLangString('MENU_TEXT','INCLUSIVE_OF_BONUSES')}</small></div>`);
+    const intervalTooltip = appendTooltip(`<div class="text-center text-warning">${getLangString('MENU_TEXT_TOOLTIP_INTERVAL')}<br><small>${getLangString('MENU_TEXT_INCLUSIVE_OF_BONUSES')}</small></div>`);
 
     ctx.patch(XPIcon, 'getTooltipContent').after(function (returnValue) {
         return appendTooltip(returnValue);
