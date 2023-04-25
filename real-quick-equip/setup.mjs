@@ -100,16 +100,16 @@ export function setup(ctx) {
             game.combat.player.equipItem(item, game.combat.player.selectedEquipmentSet, slot, quantity);
             if (game.combat.player.equipment.checkForItem(item)) {
                 if (quantity > 1) {
-                    notifyPlayer(skill, templateLangString('TOASTS', 'ITEM_QTY_EQUIPPED', templateData), 'success');
+                    notifyPlayer(skill, templateLangString('TOASTS_ITEM_QTY_EQUIPPED', templateData), 'success');
                 } else {
-                    notifyPlayer(skill, templateLangString('TOASTS', 'ITEM_EQUIPPED', templateData), 'success');
+                    notifyPlayer(skill, templateLangString('TOASTS_ITEM_EQUIPPED', templateData), 'success');
                 }
             } else
-                notifyPlayer(skill, templateLangString('TOASTS', 'CANT_EQUIP_ITEM', templateData), 'danger');
+                notifyPlayer(skill, templateLangString('TOASTS_CANT_EQUIP_ITEM', templateData), 'danger');
         } else if (game.combat.player.equipment.checkForItem(item))
-            notifyPlayer(skill, templateLangString('TOASTS', 'ITEM_ALREADY_EQUIPPED', templateData), 'info');
+            notifyPlayer(skill, templateLangString('TOASTS_ITEM_ALREADY_EQUIPPED', templateData), 'info');
         else
-            notifyPlayer(skill, templateLangString('TOASTS', 'ITEM_NOT_IN_BANK', templateData), 'danger');
+            notifyPlayer(skill, templateLangString('TOASTS_ITEM_NOT_IN_BANK', templateData), 'danger');
     }
 
     const quickEquip = () => {
@@ -180,7 +180,7 @@ export function setup(ctx) {
                 if (passive.length == 1) {
                     equipment['Passive'] = [passive[0]];
                 } else {
-                    notifyPlayer(skill, `${templateLangString('EQUIP_SLOT', 11)} conflict: ${passive.map((x) => itemMap[x].name).join(' / ')}`, "danger");
+                    notifyPlayer(skill, `${templateLangString('EQUIP_SLOT_11')} conflict: ${passive.map((x) => itemMap[x].name).join(' / ')}`, "danger");
                     return;
                 }
             }
