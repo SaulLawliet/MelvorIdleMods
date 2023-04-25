@@ -61,10 +61,10 @@ export function setup(ctx) {
             addReq(item.media, quantity, item.name, game.bank.getQty(item), item);
         });
         if (gpReq > 0) {
-            addReq(cdnMedia('assets/media/main/coins.svg'), gpReq, getLangString('MENU_TEXT', 'GP'), game.gp.amount);
+            addReq(cdnMedia('assets/media/main/coins.svg'), gpReq, getLangString('MENU_TEXT_GP'), game.gp.amount);
         }
         if (scReq > 0) {
-            addReq(cdnMedia('assets/media/main/slayer_coins.svg'), scReq, getLangString('MENU_TEXT', 'SLAYER_COINS'), game.slayerCoins.amount);
+            addReq(cdnMedia('assets/media/main/slayer_coins.svg'), scReq, getLangString('MENU_TEXT_SLAYER_COINS'), game.slayerCoins.amount);
         }
     });
 
