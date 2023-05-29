@@ -30,8 +30,11 @@ export class ModifiersComeFrom {
         return count > 1 ? `${value} * ${count}` : value;
     }
 
-    addModifier(source, key, value, count = 1) {
+    // posMult, negMult: order different from source code.
+    addModifier(source, key, value, posMult = 1, negMult = 1) {
         if (this._map.has(key)) {
+            const count = modifierData[key].isNegative ? negMult : posMult;
+
             const map = this._map.get(key);
             if (this.isSkillKey(key)) {
                 if (value.constructor.name == 'Map') {
@@ -51,15 +54,15 @@ export class ModifiersComeFrom {
         }
     }
 
-    addModifiers(source, modifiers, count = 1) {
+    addModifiers(source, modifiers, posMult = 1, negMult = 1) {
         if (!modifiers) return; // some is undefined.
         if (modifiers.constructor.name == 'Map') {
             modifiers.forEach((value, key) => {
-                this.addModifier(source, key, value, count);
+                this.addModifier(source, key, value, posMult, negMult);
             });
         } else {
             Object.entries(modifiers).forEach((e) => {
-                this.addModifier(source, e[0], e[1], count);
+                this.addModifier(source, e[0], e[1], posMult, negMult);
             });
         }
     }
@@ -204,7 +207,17 @@ export class ModifiersComeFrom {
 
     computeTownship() {
         const skill = game.skills.registeredObjects.get("melvorD:Township");
-        this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')}`, skill.townData.worship.modifiers);
+        let worshipModifierMulti = 1;
+
+        const season = skill.townData.season;
+        if (season !== undefined) {
+            this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_SEASON_MODIFIERS')}: ${season.name}`, season.modifiers);
+            const seasonMultiplier = skill.townData.worship.seasonMultiplier.get(season);
+            if (seasonMultiplier !== undefined)
+                worshipModifierMulti = seasonMultiplier;
+        }
+
+        this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')}`, skill.townData.worship.modifiers, worshipModifierMulti, 1);
         skill.WORSHIP_CHECKPOINTS.forEach((checkpoint, id) => {
             if (skill.worshipPercent >= checkpoint)
                 this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id]);
