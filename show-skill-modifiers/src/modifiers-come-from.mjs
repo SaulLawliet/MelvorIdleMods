@@ -220,7 +220,7 @@ export class ModifiersComeFrom {
         this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')}`, skill.townData.worship.modifiers, worshipModifierMulti, 1);
         skill.WORSHIP_CHECKPOINTS.forEach((checkpoint, id) => {
             if (skill.worshipPercent >= checkpoint)
-                this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id]);
+                this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id], worshipModifierMulti, 1);
         });
 
         skill.buildings.forEach((building) => {

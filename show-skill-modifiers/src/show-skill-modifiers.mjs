@@ -206,12 +206,12 @@ const getSkillOtherModifiers = (skill, localID) => {
     const nonCombatSkills = ['Woodcutting', 'Fishing', 'Firemaking', 'Cooking', 'Mining', 'Smithing', 'Thieving', 'Farming', 'Fletching', 'Crafting', 'Runecrafting', 'Herblore', 'Agility', 'Astrology', 'Township'];
 
     const cares = Object.entries(modifierData).filter((x) => {
-        var show;
+        var show = false;
         if (localID !== 'Township' && x[0].indexOf('Township') >= 0) {
             show = false;
         } else if (localID === 'Summoning' && x[0].indexOf('SummoningChargePreservation') >= 0) { // avoid duplication
             show = false;
-        } else {
+        } else if (x[1].description) {
             show = x[1].description.indexOf(localID) >= 0;
             if (show && localID === 'Combat' && x[1].description.indexOf('Non-Combat') >= 0) {
                 show = false;
