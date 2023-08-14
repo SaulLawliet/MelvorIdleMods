@@ -1303,7 +1303,8 @@ export async function setup(ctx) {
             });
         });
     
-        if (actual !== forCompare) {
+        // issues #3: new condition
+        if (actual !== forCompare && numToStr(actual) !== forCompare) {
             html += `<tr><td>&nbsp</td></tr>`
             html += `<tr style="text-align: left;"><td class="text-warning">${actual} vs ${forCompare}</td><td></td></tr>`;
             html += `<tr style="text-align: left;"><td class="text-warning">Some sources were not found.</td><td></td></tr>`;
