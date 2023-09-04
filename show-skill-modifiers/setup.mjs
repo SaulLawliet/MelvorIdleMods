@@ -154,7 +154,7 @@ export async function setup(ctx) {
             button.className = 'btn';
             button.onclick = () => showSkillModifiers();
             button.innerHTML = '<i class="fa fa-book-open mr-1 font-size-lg" style="color:white;"></i>';
-            headerTitle.parentNode.appendChild(button);
+            headerTitle.parentNode.parentNode.appendChild(button);
         }
 
         const registerGrants = (grants, iSkill) => {
