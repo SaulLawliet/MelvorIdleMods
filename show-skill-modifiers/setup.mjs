@@ -139,6 +139,8 @@ export async function setup(ctx) {
         IAstrology,
         IFishing,
         IFiremaking,
+        ICartography,
+        IArchaeology,
     } = await ctx.loadModule('src/skill.mjs');
 
     ctx.api({
@@ -221,5 +223,36 @@ export async function setup(ctx) {
             menu.xpIcon.container.onclick = () => showXP(iSkill);
             menu.masteryIcon.container.onclick = () => showMasteryXP(iSkill);
         });
+
+
+        // only AoD can access
+        if (cloudManager.hasAoDEntitlement) {
+            archaeologyMenus.digSites.forEach((menu, digSite) => {
+                const iSkill = new IArchaeology(digSite);
+                menu.xpIcon.container.onclick = () => showXP(iSkill);
+                menu.masteryIcon.container.onclick = () => showMasteryXP(iSkill);
+                menu.doublingIcon.container.onclick = () => showDoubling(iSkill);
+                registerInterval(menu.intervalIcon, iSkill);
+            });
+
+
+            const iCartographyHex = new ICartography();
+            let menu = cartographyMap.surveyOverview;
+            menu.xpIcon.container.onclick = () => showXP(iCartographyHex);
+            registerInterval(menu.intervalIcon, iCartographyHex);
+
+            const iCartographyPaperMaking = new ICartography('PaperMaking');
+            menu = cartographyMapCreateMenu.paperMakingMenu;
+            menu.grants.xpIcon.container.onclick = () => showXP(iCartographyPaperMaking);
+            menu.doublingIcon.container.onclick = () => showDoubling(iCartographyPaperMaking);
+            menu.preserveIcon.container.onclick = () => showPreservation(iCartographyPaperMaking);
+            registerInterval(menu.intervalIcon, iCartographyPaperMaking);
+
+            const iCartographyMapUpgrade = new ICartography('MapUpgrade');
+            menu = cartographyMapCreateMenu.mapUpgradeMenu
+            menu.grants.xpIcon.container.onclick = () => showXP(iCartographyMapUpgrade);
+            menu.preserveIcon.container.onclick = () => showPreservation(iCartographyMapUpgrade);
+            registerInterval(menu.intervalIcon, iCartographyMapUpgrade);
+        }
     });
 }

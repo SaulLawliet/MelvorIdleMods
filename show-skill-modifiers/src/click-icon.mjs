@@ -179,6 +179,8 @@ const showInterval = (iSkill) => {
         ['increasedSkillIntervalPercent', 'decreasedSkillIntervalPercent', 'increasedGlobalSkillIntervalPercent', 'decreasedGlobalSkillIntervalPercent'],
         ['increasedSkillInterval', 'decreasedSkillInterval']
     ];
+    iSkill.appendModifiersForInterval(careModifiers);
+
     const groups = createDescriptionsGroups(careModifiers, iSkill.skill);
 
     appendGroup(groups[0], iSkill.appendGroupForPercentageInterval.bind(iSkill), secondTitle);

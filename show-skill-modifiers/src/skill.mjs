@@ -41,6 +41,7 @@ class ISkill {
     // Interval
     getBaseInterval() { return this.skill.baseInterval; }
     getActualInterval() { return this.skill.actionInterval; }
+    appendModifiersForInterval(modifiers) {}
     appendGroupForPercentageInterval(extra) {} // getPercentageIntervalModifier
     appendGroupForFlatInterval(extra) {} // DONE: getFlatIntervalModifier
 
@@ -424,6 +425,96 @@ class IFiremaking extends ICraftingSkill {
     }
 }
 
+class ICartography extends ISkill {
+    skill = game.cartography;
+
+    constructor(type = null) {
+        super();
+        this.type = type;
+    }
+
+    getAction() {
+        switch (this.type) {
+            case 'PaperMaking': return this.skill.selectedPaperRecipe;
+            case 'MapUpgrade': return this.skill.selectedMapUpgradeDigsite.selectedUpgradeMap.digSite;
+            default: return this.skill.activeMap.selectedHex;
+        }
+    }
+
+    getBaseXP() {
+        switch (this.type) {
+            case 'PaperMaking': return super.getBaseXP();
+            case 'MapUpgrade': return this.skill.getMapUpgradeBaseXP(this.getAction().selectedMap);
+            default: return this.skill.getSkillXPForHexSurveyAction(this.getAction());
+        }
+    }
+
+    getBaseInterval() {
+        switch (this.type) {
+            case 'PaperMaking': return this.skill.BASE_PAPER_MAKING_INTERVAL;
+            case 'MapUpgrade': return this.skill.BASE_MAP_UPGRADE_INTERVAL;
+            default: return this.skill.BASE_SURVEY_INTERVAL;
+        }
+    }
+    getActualInterval() {
+        switch (this.type) {
+            case 'PaperMaking': return this.skill.getPaperMakingInterval(this.getAction());
+            case 'MapUpgrade': return this.skill.getMapUpgradeInterval(this.getAction());
+            default: return this.skill.surveyInterval;
+        }
+    }
+    appendModifiersForInterval(modifiers) {
+        if (this.getAction() instanceof PaperMakingRecipe) {
+            modifiers[0].push('increasedPaperMakingInterval', 'decreasedPaperMakingInterval');
+        } else if (this.getAction() instanceof ArchaeologyDigSite) {
+            modifiers[0].push('increasedMapUpgradeInterval', 'decreasedMapUpgradeInterval');
+        } else {
+            modifiers[0].push('increasedSurveyInterval', 'decreasedSurveyInterval');
+        }
+    }
+
+    getActualPreservation() {
+        switch (this.type) {
+            case 'PaperMaking':
+            case 'MapUpgrade':
+                return this.skill.getPreservationChance(this.getAction(), 0);
+
+            default: return super.getActualPreservation();
+        }
+    }
+}
+
+class IArchaeology extends IGatheringSkill {
+    skill = game.archaeology;
+
+    constructor(digSite = null) {
+        super();
+        this.digSite = digSite;
+    }
+
+    getAction() { return this.digSite; }
+    getMasteryModifiedInterval() { return this.getActualInterval(); }
+
+    getBaseXP() { return this.skill.getArtefactSkillXPForDigSite(this.digSite); }
+
+    appendGroupForMasteryXP(extra) {
+        this.checkPoolTierActive(extra, 0, 5);
+    }
+
+    getActualInterval() { return this.skill.getDigSiteInterval(this.digSite); }
+
+    getActualDoubling() { return this.skill.getDoublingChance(this.getAction()); }
+    appendGroupForDoubling(extra) {
+        const masteryLevel = this.getMasteryLevel();
+        if (masteryLevel >= 50) {
+            extra.sum += 10;
+            extra.descriptions.push([`${templateLangString('MENU_TEXT_MASTERY')} Lv: 50`, 10]);
+        }
+    }
+
+}
+
+
 export {
     IHerblore,
     ISmithing,
@@ -437,4 +528,6 @@ export {
     IAstrology,
     IFishing,
     IFiremaking,
+    ICartography,
+    IArchaeology,
 }

@@ -91,6 +91,10 @@ export class ModifiersComeFrom {
         this.computePetManager();
         this.computePosionManager();
         this.computeShop();
+        if (cloudManager.hasAoDEntitlement) {
+            this.computeArchaeology();
+            this.computeCartography();
+        }
 
         // - character.computeAllStats()
         //   - computeAttackType(): ignore
@@ -257,6 +261,48 @@ export class ModifiersComeFrom {
                 }
             }
         });
+    }
+
+    computeArchaeology() {
+        const skill = game.skills.registeredObjects.get("melvorAoD:Archaeology");
+
+        if (skill.isActive && skill.currentDigSite !== undefined && skill.currentDigSite.selectedMap !== undefined) {
+            this.addArrayModifiers(getLangString('GAME_GUIDE_CARTOGRAPHY_35'), skill.currentDigSite.selectedMap.refinements);
+        }
+        skill.museumRewards.forEach((bonus) => {
+            if (bonus.modifiers !== undefined && bonus.awarded) {
+                console.log(bonus);
+                this.addModifiers(`${getLangString('ARCHAEOLOGY_MUSEUM_ARTEFACTS_DONATED')}: ${bonus.museumCount}`, bonus.modifiers);
+            }
+        });
+    }
+
+    computeCartography() {
+        const skill = game.skills.registeredObjects.get("melvorAoD:Cartography");
+
+        skill.worldMaps.forEach((map) => {
+            map.pointsOfInterest.forEach((poi) => {
+                if (!poi.isDiscovered) return;
+                if (poi.discoveryModifiers !== undefined && poi.discoveryModifiers.movesLeft > 0) {
+                    this.addModifiers(`${getLangString('POINT_OF_INTEREST')}: ${poi.name}`, poi.discoveryModifiers.modifiers);
+                }
+            });
+            map.sortedMasteryBonuses.forEach((bonus) => {
+                if (map.masteredHexes >= bonus.masteredHexes && bonus.modifiers !== undefined) {
+                    this.addModifiers(`${skill.name}: ${templateLangString('HEX_COUNT', {count: bonus.masteredHexes})}`, bonus.modifiers);
+                }
+            });
+        });
+
+        // TODO: lastTravelEvent
+
+        if (skill.activeMap !== undefined && skill.activeMap.playerPosition !== undefined) {
+            const poi = skill.activeMap.playerPosition.pointOfInterest;
+            if (poi !== undefined && poi.activeModifiers !== undefined) {
+                const posMult = skill.hasCarthuluPet ? 2 : 1;
+                this.addModifiers(`${getLangString('POINT_OF_INTEREST')}: ${poi.name}`, poi.activeModifiers, posMult);
+            }
+        }
     }
 
     computeEquippedItem() {
