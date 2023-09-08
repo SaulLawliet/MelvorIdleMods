@@ -239,7 +239,7 @@ export function setup(ctx) {
     };
 
     ctx.patch(Minibar, 'initialize').after(() => {
-        const quickEquipReal = game.minibar.createMinibarItem('minibar-quick-equip-real', `${CDNDIR}assets/media/bank/fez_amulet.png`, '<div class="text-center"><small>Click to Equip All</small></div>', {
+        const quickEquipReal = game.minibar.createMinibarItem('minibar-quick-equip-real', `${CDNDIR()}assets/media/bank/fez_amulet.png`, '<div class="text-center"><small>Click to Equip All</small></div>', {
             onClick: ()=>quickEquip(),
         });
 
