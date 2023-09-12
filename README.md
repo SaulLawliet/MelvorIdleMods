@@ -10,6 +10,7 @@
 - [Mastery Pool Can Overflow](https://mod.io/g/melvoridle/m/mastery-pool-can-overflow)
 - [Real Quick Equip](https://mod.io/g/melvoridle/m/real-quick-equip)
 - [Show Artisan Recipe Price](https://mod.io/g/melvoridle/m/show-artisan-recipe-price)
+- [Show Item Sources And Uses](https://mod.io/g/melvoridle/m/show-item-sources-and-uses)
 - [Show Skill Modifiers](https://mod.io/g/melvoridle/m/show-skill-modifiers)
 - [Undo Sell](https://mod.io/g/melvoridle/m/undo-sell)
 - [Virtual Skill Progress](https://mod.io/g/melvoridle/m/virtual-skill-progress)

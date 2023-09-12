@@ -1,0 +1,4 @@
+{
+	"namespace": "ShowItemSourcesAndUses",
+	"setup": "setup.mjs"
+}
