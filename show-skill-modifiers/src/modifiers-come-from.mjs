@@ -36,6 +36,9 @@ export class ModifiersComeFrom {
             const count = modifierData[key].isNegative ? negMult : posMult;
 
             const map = this._map.get(key);
+            while (map.has(source)) {
+                source = source + '+';
+            }
             if (this.isSkillKey(key)) {
                 if (value.constructor.name == 'Map') {
                     if (value.has(this._skill)) {
@@ -271,7 +274,6 @@ export class ModifiersComeFrom {
         }
         skill.museumRewards.forEach((bonus) => {
             if (bonus.modifiers !== undefined && bonus.awarded) {
-                console.log(bonus);
                 this.addModifiers(`${getLangString('ARCHAEOLOGY_MUSEUM_ARTEFACTS_DONATED')}: ${bonus.museumCount}`, bonus.modifiers);
             }
         });

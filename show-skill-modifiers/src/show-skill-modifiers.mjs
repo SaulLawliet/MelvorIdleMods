@@ -98,6 +98,7 @@ class MyMappedModifiers extends MappedModifiers {
 /*
     - Skill
         - Township
+        - Cartography
         - CombatSkill
             - ...
         - SkillWithMastery
@@ -109,6 +110,7 @@ class MyMappedModifiers extends MappedModifiers {
                 - Mining
                 - Thieving
                 - Woodcutting
+                - Archaeology
                 - CraftingSKill
                     - AltMagic
                     - Cooking
@@ -125,9 +127,9 @@ const getGlobalModifiers = (skill, localID) => {
     const cares = Object.entries(modifierData).filter((x) => {
         var show = false;
         if (skill || localID === 'Combat') {
-            if (localID !== 'Township' && localID !== 'AltMagic') {
+            if (localID !== 'Township' && localID !== 'AltMagic' && localID !== 'Cartography' && localID !== 'Archaeology') {
                 show ||= x[0].indexOf('PreservePotionCharge') >= 0;
-                if (localID !== 'Farming') {
+                if (localID !== 'Farming' && localID !== 'Cartography' && localID !== 'Archaeology') {
                     show ||= x[0].indexOf('SummoningChargePreservation') >= 0;
                 }
             }
@@ -203,7 +205,7 @@ const getSkillOtherModifiers = (skill, localID) => {
         localID = 'Cook'
     }
     // not include Summoning
-    const nonCombatSkills = ['Woodcutting', 'Fishing', 'Firemaking', 'Cooking', 'Mining', 'Smithing', 'Thieving', 'Farming', 'Fletching', 'Crafting', 'Runecrafting', 'Herblore', 'Agility', 'Astrology', 'Township'];
+    const nonCombatSkills = ['Woodcutting', 'Fishing', 'Firemaking', 'Cooking', 'Mining', 'Smithing', 'Thieving', 'Farming', 'Fletching', 'Crafting', 'Runecrafting', 'Herblore', 'Agility', 'Astrology', 'Township', 'Cartography', 'Archaeology'];
 
     const cares = Object.entries(modifierData).filter((x) => {
         var show = false;
@@ -211,6 +213,8 @@ const getSkillOtherModifiers = (skill, localID) => {
             show = false;
         } else if (localID === 'Summoning' && x[0].indexOf('SummoningChargePreservation') >= 0) { // avoid duplication
             show = false;
+        } else if (localID === 'Archaeology' && (x[0].indexOf('ChanceToPreserveMapCharges') >= 0 || x[0].indexOf('DigSiteMapSlots') >= 0)) {
+            show = true;
         } else if (x[1].description) {
             show = x[1].description.indexOf(localID) >= 0;
             if (show && localID === 'Combat' && x[1].description.indexOf('Non-Combat') >= 0) {
