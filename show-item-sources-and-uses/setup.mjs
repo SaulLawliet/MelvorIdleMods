@@ -7,15 +7,16 @@ export function setup(ctx) {
         return obj;
     }
 
-    const dropItem = (itemID, dropTable) => dropTable.drops.some(x => x.item.id == itemID);
+    const dropItem = (itemID, dropTable) => dropTable?.drops?.some(x => x.item.id == itemID);
 
     const find = (itemID, obj) => itemID == obj.id;
     const findObj = (itemID, obj) => obj && itemID == obj.item.id;
     const findArray = (itemID, array) => array.some((x) => x.id == itemID);
-    const findArrayObj = (itemID, array) => array && array.some((x) => x.item.id == itemID)
-    const findAlternativeCosts = (itemID, alternativeCosts) => alternativeCosts && alternativeCosts.some((x) => findArrayObj(itemID, x.itemCosts));
+    const findArrayObj = (itemID, array) => array?.some((x) => x.item.id == itemID)
+    const findAlternativeCosts = (itemID, alternativeCosts) => alternativeCosts?.some((x) => findArrayObj(itemID, x.itemCosts));
+    const findArtefacts = (itemID, artefacts) => Object.values(artefacts).some((x) => dropItem(itemID, x));
 
-    const showImg = (item) => {
+    const showItem = (item) => {
         let done = false;
         let data = item.name;
         if (item instanceof TownshipTask) {
@@ -23,6 +24,11 @@ export function setup(ctx) {
             done = game.township.tasks.completedTasks.has(item);
         } else if (item instanceof ShopPurchase) {
             done = game.shop.isUpgradePurchased(item);
+        } else if (item instanceof ArchaeologyMuseumReward) {
+            data = item.localID;
+            done = item.awarded;
+        } else if (item instanceof PointOfInterest) {
+            done = item.isDiscovered;
         }
 
         if (item.media) {
@@ -37,12 +43,10 @@ export function setup(ctx) {
         return data;
     }
 
-    const calcList = (itemID) => {
-        const sources = [];
-        const uses = [];
-
+    const buildSkillData = () => {
         // No Astrology
         const skillData = [
+            ['Item(Open)', game.items, {}, {'dropTable': dropItem}],
             ['Dungeon', game.dungeons, {}, {'rewards': findArray}],
             ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}],
             [game.township.name, game.township.tasks.tasks, {'goals.items': findArrayObj}, {'rewards.items': findArrayObj}],
@@ -55,6 +59,9 @@ export function setup(ctx) {
             [game.thieving.name, game.thieving.actions, {}, {'lootTable': dropItem, 'uniqueDrop': findObj}],
             [`${game.thieving.name}(Area)`, game.thieving.areas, {}, {'uniqueDrops': findArrayObj}],
             [game.agility.name, game.agility.actions, {'itemCosts': findArrayObj}, {}],
+            [game.agility.name, game.agility.pillars, {'itemCosts': findArrayObj}, {}],
+            [game.agility.name, game.agility.elitePillars, {'itemCosts': findArrayObj}, {}],
+
 
             [game.smithing.name, game.smithing.actions, {'itemCosts': findArrayObj}, {'product': find}],
             [game.fletching.name, game.fletching.actions, {'alternativeCosts': findAlternativeCosts, 'itemCosts': findArrayObj}, {'product': find}],
@@ -64,17 +71,28 @@ export function setup(ctx) {
             [game.summoning.name, game.summoning.actions, {'itemCosts': findArrayObj, 'nonShardItemCosts': findArray}, {'product': find}],
             [game.altMagic.name, game.altMagic.actions, {'runesRequired': findArrayObj, 'runesRequiredAlt': findArrayObj}, {}],
         ];
+        if (cloudManager.hasAoDEntitlement) {
+            skillData.push([game.cartography.name, game.cartography.paperRecipes, {'costs.items': findArrayObj}, {'product': find}]);
+            skillData.push([game.archaeology.name, game.archaeology.actions, {}, {'artefacts': findArtefacts}]);
+            skillData.push([`${game.archaeology.name}(Museum)`, game.archaeology.museumRewards, {}, {'items': findArrayObj}]);
+        }
+        return skillData;
+    }
 
-        skillData.forEach((data) => {
+    const calcList = (itemID) => {
+        const sources = [];
+        const uses = [];
+
+        buildSkillData().forEach((data) => {
             data[1].allObjects.forEach((obj) => {
                 Object.entries(data[2]).forEach((entry) => {
                     if (entry[1](itemID, getObj(obj, entry[0]))) {
-                        uses.push([data[0], showImg(obj)]);
+                        uses.push([data[0], showItem(obj)]);
                     }
                 });
                 Object.entries(data[3]).forEach((entry) => {
                     if (entry[1](itemID, getObj(obj, entry[0]))) {
-                        sources.push([data[0], showImg(obj)]);
+                        sources.push([data[0], showItem(obj)]);
                     }
                 });
             });
@@ -83,7 +101,7 @@ export function setup(ctx) {
         // monster
         game.monsters.allObjects.forEach((monster) => {
             if ((monster.bones && monster.bones.item.id == itemID) || (!monster.isBoss && monster.lootTable && dropItem(itemID, monster.lootTable))) {
-                sources.push(['Monster', showImg(monster)]);
+                sources.push(['Monster', showItem(monster)]);
             }
         });
 
@@ -91,26 +109,19 @@ export function setup(ctx) {
         game.bank.itemUpgrades.forEach((itemUpgrades, key) => {
             itemUpgrades.forEach((itemUpgrade) => {
                 if (itemUpgrade.upgradedItem.id == itemID) {
-                    sources.push(['Item(Upgrade)', showImg(key)]);
+                    sources.push(['Item(Upgrade)', showItem(key)]);
                 }
 
                 if (findArrayObj(itemID, itemUpgrade.itemCosts)) {
-                    uses.push(['Item(Upgrade)', showImg(itemUpgrade.upgradedItem)]);
+                    uses.push(['Item(Upgrade)', showItem(itemUpgrade.upgradedItem)]);
                 }
             });
-        });
-        game.items.allObjects.forEach((item) => {
-            if (item instanceof OpenableItem) {
-                if (dropItem(itemID, item.dropTable)) {
-                    sources.push(['Item(Open)', showImg(item)]);
-                }
-            }
         });
 
         // Township
         game.township.itemConversions.fromTownship.forEach((conversions, resource) => {
             if (findArrayObj(itemID, conversions)) {
-                sources.push([`${game.township.name}(Conversion)`, showImg(resource)]);
+                sources.push([`${game.township.name}(Conversion)`, showItem(resource)]);
             }
         });
 
@@ -124,17 +135,16 @@ export function setup(ctx) {
             game.cartography.worldMaps.allObjects.forEach((map) => {
                 map.pointsOfInterest.allObjects.forEach((poi) => {
                     if (poi.discoveryRewards && findArrayObj(itemID, poi.discoveryRewards.items)) {
-                        sources.push([game.cartography.name, showImg(poi)]);
+                        sources.push([game.cartography.name, showItem(poi)]);
+                    }
+
+                    if (poi.hidden?.itemsWorn.length > 0) {
+                        if (findArray(itemID, poi.hidden.itemsWorn)) {
+                            uses.push([game.cartography.name, showItem(poi)]);
+                        }
                     }
                 });
             });
-
-            // Archaeology
-            game.archaeology.actions.allObjects.forEach((action) => {
-                if (Object.values(action.artefacts).some((x) => dropItem(itemID, x))) {
-                    sources.push([game.archaeology.name, showImg(action)]);
-                }
-            })
         }
 
         return {sources, uses}
