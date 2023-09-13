@@ -7,7 +7,6 @@ export function setup(ctx) {
         return obj;
     }
 
-    const simpleName = (obj) => obj.name;
     const dropItem = (itemID, dropTable) => dropTable.drops.some(x => x.item.id == itemID);
 
     const find = (itemID, obj) => itemID == obj.id;
@@ -16,44 +15,66 @@ export function setup(ctx) {
     const findArrayObj = (itemID, array) => array && array.some((x) => x.item.id == itemID)
     const findAlternativeCosts = (itemID, alternativeCosts) => alternativeCosts && alternativeCosts.some((x) => findArrayObj(itemID, x.itemCosts));
 
+    const showImg = (item) => {
+        let done = false;
+        let data = item.name;
+        if (item instanceof TownshipTask) {
+            data = item._name;
+            done = game.township.tasks.completedTasks.has(item);
+        } else if (item instanceof ShopPurchase) {
+            done = game.shop.isUpgradePurchased(item);
+        }
+
+        if (item.media) {
+            data = `<img class="skill-icon-xxs" src="${item.media}"> ${data}`;
+        }
+        if (item instanceof Item) {
+            data = `<a href="javascript:mod.api.ShowItemSourcesAndUses.showList('${item.id}');">${data}</a>`;
+        }
+        if (done) {
+            data = `<del>${data}</del>`;
+        }
+        return data;
+    }
+
     const calcList = (itemID) => {
         const sources = [];
         const uses = [];
 
         // No Astrology
         const skillData = [
-            ['Dungeon', game.dungeons, {}, {'rewards': findArray}, simpleName],
-            ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}, simpleName],
-            [game.township.name, game.township.tasks.tasks, {'goals.items': findArrayObj}, {'rewards.items': findArrayObj}, (x) => x._name],
-            [game.farming.name, game.farming.actions, {'seedCost': findObj}, {'product': find}, simpleName],
-            [game.woodcutting.name, game.woodcutting.actions, {}, {'product': find}, simpleName],
-            [game.fishing.name, game.fishing.actions, {}, {'product': find}, simpleName],
-            [game.firemaking.name, game.firemaking.actions, {'log': find}, {}, simpleName],
-            [game.cooking.name, game.cooking.actions, {'itemCosts': findArrayObj}, {'product': find, 'perfectItem': find}, simpleName],
-            [game.mining.name, game.mining.actions, {}, {'product': find}, simpleName],
-            [game.thieving.name, game.thieving.actions, {}, {'lootTable': dropItem, 'uniqueDrop': findObj}, simpleName],
-            [`${game.thieving.name}(Area)`, game.thieving.areas, {}, {'uniqueDrops': findArrayObj}, simpleName],
-            [game.agility.name, game.agility.actions, {'itemCosts': findArrayObj}, {}, simpleName],
+            ['Dungeon', game.dungeons, {}, {'rewards': findArray}],
+            ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}],
+            [game.township.name, game.township.tasks.tasks, {'goals.items': findArrayObj}, {'rewards.items': findArrayObj}],
+            [game.farming.name, game.farming.actions, {'seedCost': findObj}, {'product': find}],
+            [game.woodcutting.name, game.woodcutting.actions, {}, {'product': find}],
+            [game.fishing.name, game.fishing.actions, {}, {'product': find}],
+            [game.firemaking.name, game.firemaking.actions, {'log': find}, {}],
+            [game.cooking.name, game.cooking.actions, {'itemCosts': findArrayObj}, {'product': find, 'perfectItem': find}],
+            [game.mining.name, game.mining.actions, {}, {'product': find}],
+            [game.thieving.name, game.thieving.actions, {}, {'lootTable': dropItem, 'uniqueDrop': findObj}],
+            [`${game.thieving.name}(Area)`, game.thieving.areas, {}, {'uniqueDrops': findArrayObj}],
+            [game.agility.name, game.agility.actions, {'itemCosts': findArrayObj}, {}],
 
-            [game.smithing.name, game.smithing.actions, {'itemCosts': findArrayObj}, {'product': find}, simpleName],
-            [game.fletching.name, game.fletching.actions, {'alternativeCosts': findAlternativeCosts, 'itemCosts': findArrayObj}, {'product': find}, simpleName],
-            [game.crafting.name, game.crafting.actions, {'itemCosts': findArrayObj}, {'product': find}, simpleName],
-            [game.runecrafting.name, game.runecrafting.actions, {'itemCosts': findArrayObj}, {'product': find}, simpleName],
-            [game.herblore.name, game.herblore.actions, {'itemCosts': findArrayObj}, {'potions': findArray}, simpleName],
-            [game.summoning.name, game.summoning.actions, {'itemCosts': findArrayObj, 'nonShardItemCosts': findArray}, {'product': find}, simpleName],
-            [game.altMagic.name, game.altMagic.actions, {'runesRequired': findArrayObj, 'runesRequiredAlt': findArrayObj}, {}, simpleName],
+            [game.smithing.name, game.smithing.actions, {'itemCosts': findArrayObj}, {'product': find}],
+            [game.fletching.name, game.fletching.actions, {'alternativeCosts': findAlternativeCosts, 'itemCosts': findArrayObj}, {'product': find}],
+            [game.crafting.name, game.crafting.actions, {'itemCosts': findArrayObj}, {'product': find}],
+            [game.runecrafting.name, game.runecrafting.actions, {'itemCosts': findArrayObj}, {'product': find}],
+            [game.herblore.name, game.herblore.actions, {'itemCosts': findArrayObj}, {'potions': findArray}],
+            [game.summoning.name, game.summoning.actions, {'itemCosts': findArrayObj, 'nonShardItemCosts': findArray}, {'product': find}],
+            [game.altMagic.name, game.altMagic.actions, {'runesRequired': findArrayObj, 'runesRequiredAlt': findArrayObj}, {}],
         ];
 
         skillData.forEach((data) => {
             data[1].allObjects.forEach((obj) => {
                 Object.entries(data[2]).forEach((entry) => {
                     if (entry[1](itemID, getObj(obj, entry[0]))) {
-                        uses.push([data[0], data[4](obj)]);
+                        uses.push([data[0], showImg(obj)]);
                     }
                 });
                 Object.entries(data[3]).forEach((entry) => {
                     if (entry[1](itemID, getObj(obj, entry[0]))) {
-                        sources.push([data[0], data[4](obj)]);
+                        sources.push([data[0], showImg(obj)]);
                     }
                 });
             });
@@ -62,26 +83,26 @@ export function setup(ctx) {
         // monster
         game.monsters.allObjects.forEach((monster) => {
             if ((monster.bones && monster.bones.item.id == itemID) || (!monster.isBoss && monster.lootTable && dropItem(itemID, monster.lootTable))) {
-                sources.push(['Monster', monster.name]);
+                sources.push(['Monster', showImg(monster)]);
             }
         });
 
         // Item
-        game.bank.itemUpgrades.forEach((itemUpgrades) => {
+        game.bank.itemUpgrades.forEach((itemUpgrades, key) => {
             itemUpgrades.forEach((itemUpgrade) => {
                 if (itemUpgrade.upgradedItem.id == itemID) {
-                    sources.push(['Item(Upgrade)', itemUpgrade.itemCosts.map((item) => item.item.name).join('+')]);
+                    sources.push(['Item(Upgrade)', showImg(key)]);
                 }
 
                 if (findArrayObj(itemID, itemUpgrade.itemCosts)) {
-                    uses.push(['Item(Upgrade)', itemUpgrade.upgradedItem.name]);
+                    uses.push(['Item(Upgrade)', showImg(itemUpgrade.upgradedItem)]);
                 }
             });
         });
         game.items.allObjects.forEach((item) => {
             if (item instanceof OpenableItem) {
                 if (dropItem(itemID, item.dropTable)) {
-                    sources.push(['Item(Open)', item.name]);
+                    sources.push(['Item(Open)', showImg(item)]);
                 }
             }
         });
@@ -89,7 +110,7 @@ export function setup(ctx) {
         // Township
         game.township.itemConversions.fromTownship.forEach((conversions, resource) => {
             if (findArrayObj(itemID, conversions)) {
-                sources.push([`${game.township.name}(Conversion)`, resource.name]);
+                sources.push([`${game.township.name}(Conversion)`, showImg(resource)]);
             }
         });
 
@@ -103,7 +124,7 @@ export function setup(ctx) {
             game.cartography.worldMaps.allObjects.forEach((map) => {
                 map.pointsOfInterest.allObjects.forEach((poi) => {
                     if (poi.discoveryRewards && findArrayObj(itemID, poi.discoveryRewards.items)) {
-                        sources.push([game.cartography.name, poi.name]);
+                        sources.push([game.cartography.name, showImg(poi)]);
                     }
                 });
             });
@@ -111,7 +132,7 @@ export function setup(ctx) {
             // Archaeology
             game.archaeology.actions.allObjects.forEach((action) => {
                 if (Object.values(action.artefacts).some((x) => dropItem(itemID, x))) {
-                    sources.push([game.archaeology.name, action.name]);
+                    sources.push([game.archaeology.name, showImg(action)]);
                 }
             })
         }
@@ -132,7 +153,7 @@ export function setup(ctx) {
         if (sources.length > 0) {
             html += '<table class="font-w400 font-size-sm mb-1" style="margin: auto; border-collapse: unset;">';
             sources.forEach((line) => {
-                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td>${line[1]}</td></tr>`;
+                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td class="${line[1].startsWith('<del>') ? 'text-warning' : ''}">${line[1]}</td></tr>`;
             })
             html += '</table><br>'
         } else {
@@ -144,7 +165,7 @@ export function setup(ctx) {
         if (uses.length > 0) {
             html += '<table class="font-w400 font-size-sm mb-1" style="margin: auto; border-collapse: unset;">';
             uses.forEach((line) => {
-                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td>${line[1]}</td></tr>`;
+                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td class="${line[1].startsWith('<del>') ? 'text-warning' : ''}">${line[1]}</td></tr>`;
             })
             html += '</table><br>'
         } else {
