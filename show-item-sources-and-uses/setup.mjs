@@ -2,6 +2,7 @@ export function setup(ctx) {
 
     const getObj = (obj, attrs) => {
         for (let attr of attrs.split('.')) {
+            if (!(attr in obj)) return undefined;
             obj = obj[attr];
         }
         return obj;
@@ -16,7 +17,11 @@ export function setup(ctx) {
     const findAlternativeCosts = (itemID, alternativeCosts) => alternativeCosts?.some((x) => findArrayObj(itemID, x.itemCosts));
     const findArtefacts = (itemID, artefacts) => Object.values(artefacts).some((x) => dropItem(itemID, x));
 
-    const qtyArrayObj = (itemID, array) => array?.find((x) => x.item.id == itemID)?.quantity;
+    const qtyArrayObj = (itemID, array) => {
+        let qty = array?.find((x) => x.item.id == itemID)?.quantity;
+        if (qty == 0) qty = -1;
+        return qty;
+    }
 
     const showItem = (item) => {
         let done = false;
@@ -27,10 +32,14 @@ export function setup(ctx) {
         } else if (item instanceof ShopPurchase) {
             done = game.shop.isUpgradePurchased(item);
         } else if (item instanceof ArchaeologyMuseumReward) {
-            data = item.localID;
+            data = `${getLangString('ARCHAEOLOGY_MUSEUM_ARTEFACTS_DONATED')} ${item.localID}`;
             done = item.awarded;
         } else if (item instanceof PointOfInterest) {
+            const coords = item.hex.to_oddq();
+            data += ` (${coords.col}, ${coords.row})`;
             done = item.isDiscovered;
+        } else if (item instanceof RandomTravelEvent) {
+            data = item.localID;
         }
 
         if (item.media) {
@@ -48,8 +57,9 @@ export function setup(ctx) {
     const appendQty = (itemID, item, func, obj, verb) => {
         let desc = showItem(item);
         if (func == findArrayObj) {
-            const qty = qtyArrayObj(itemID, obj);
+            let qty = qtyArrayObj(itemID, obj);
             if (qty) {
+                if (qty < 0) qty = 0;
                 desc += ` ${verb} ${qty}`;
             }
         }
@@ -86,6 +96,8 @@ export function setup(ctx) {
         ];
         if (cloudManager.hasAoDEntitlement) {
             skillData.push([game.cartography.name, game.cartography.paperRecipes, {'costs.items': findArrayObj}, {'product': find}]);
+            skillData.push([`${game.cartography.name}(Event)`, game.cartography.travelEventRegistry, {}, {'rewards.items': findArrayObj}]);
+
             skillData.push([game.archaeology.name, game.archaeology.actions, {}, {'artefacts': findArtefacts}]);
             skillData.push([`${game.archaeology.name}(Museum)`, game.archaeology.museumRewards, {}, {'items': findArrayObj}]);
         }
@@ -126,7 +138,7 @@ export function setup(ctx) {
                     sources.push(['Item(Upgrade)', showItem(key)]);
                 }
 
-                if (find(itemID, key)) {
+                if (findArrayObj(itemID, itemUpgrade.itemCosts)) {
                     uses.push(['Item(Upgrade)', appendQty(itemID, itemUpgrade.upgradedItem, findArrayObj, itemUpgrade.itemCosts, 'uses')]);
                 }
             });
