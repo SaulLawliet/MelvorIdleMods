@@ -16,6 +16,8 @@ export function setup(ctx) {
     const findAlternativeCosts = (itemID, alternativeCosts) => alternativeCosts?.some((x) => findArrayObj(itemID, x.itemCosts));
     const findArtefacts = (itemID, artefacts) => Object.values(artefacts).some((x) => dropItem(itemID, x));
 
+    const qtyArrayObj = (itemID, array) => array?.find((x) => x.item.id == itemID)?.quantity;
+
     const showItem = (item) => {
         let done = false;
         let data = item.name;
@@ -41,6 +43,17 @@ export function setup(ctx) {
             data = `<del>${data}</del>`;
         }
         return data;
+    }
+
+    const appendQty = (itemID, item, func, obj, verb) => {
+        let desc = showItem(item);
+        if (func == findArrayObj) {
+            const qty = qtyArrayObj(itemID, obj);
+            if (qty) {
+                desc += ` ${verb} ${qty}`;
+            }
+        }
+        return desc;
     }
 
     const buildSkillData = () => {
@@ -85,15 +98,16 @@ export function setup(ctx) {
 
         buildSkillData().forEach((data) => {
             data[1].allObjects.forEach((obj) => {
-                Object.entries(data[2]).forEach((entry) => {
-                    if (entry[1](itemID, getObj(obj, entry[0]))) {
-                        uses.push([data[0], showItem(obj)]);
-                    }
-                });
-                Object.entries(data[3]).forEach((entry) => {
-                    if (entry[1](itemID, getObj(obj, entry[0]))) {
-                        sources.push([data[0], showItem(obj)]);
-                    }
+                [
+                    [uses, 'uses', data[2]],
+                    [sources, 'gives', data[3]]
+                ].forEach((logic) => {
+                    Object.entries(logic[2]).forEach((entry) => {
+                        const tmpObj = getObj(obj, entry[0]);
+                        if (entry[1](itemID, tmpObj)) {
+                            logic[0].push([data[0], appendQty(itemID, obj, entry[1], tmpObj, logic[1])]);
+                        }
+                    });
                 });
             });
         });
@@ -112,8 +126,8 @@ export function setup(ctx) {
                     sources.push(['Item(Upgrade)', showItem(key)]);
                 }
 
-                if (findArrayObj(itemID, itemUpgrade.itemCosts)) {
-                    uses.push(['Item(Upgrade)', showItem(itemUpgrade.upgradedItem)]);
+                if (find(itemID, key)) {
+                    uses.push(['Item(Upgrade)', appendQty(itemID, itemUpgrade.upgradedItem, findArrayObj, itemUpgrade.itemCosts, 'uses')]);
                 }
             });
         });
@@ -135,7 +149,7 @@ export function setup(ctx) {
             game.cartography.worldMaps.allObjects.forEach((map) => {
                 map.pointsOfInterest.allObjects.forEach((poi) => {
                     if (poi.discoveryRewards && findArrayObj(itemID, poi.discoveryRewards.items)) {
-                        sources.push([game.cartography.name, showItem(poi)]);
+                        sources.push([game.cartography.name, appendQty(itemID, poi, findArrayObj, poi.discoveryRewards.items, 'gives')]);
                     }
 
                     if (poi.hidden?.itemsWorn.length > 0) {
