@@ -94,7 +94,7 @@ export class ModifiersComeFrom {
         this.computePetManager();
         this.computePosionManager();
         this.computeShop();
-        if (cloudManager.hasAoDEntitlement) {
+        if (game.registeredNamespaces.hasNamespace('melvorAoD')) {
             this.computeArchaeology();
             this.computeCartography();
         }
@@ -296,11 +296,13 @@ export class ModifiersComeFrom {
             });
         });
 
-        // TODO: lastTravelEvent
+        if (skill.lastTravelEvent?.tempBonuses) {
+            this.addModifiers(getLangString('RANDOM_TRAVEL_EVENT'), skill.lastTravelEvent.tempBonuses);
+        }
 
-        if (skill.activeMap !== undefined && skill.activeMap.playerPosition !== undefined) {
+        if (skill.activeMap?.playerPosition) {
             const poi = skill.activeMap.playerPosition.pointOfInterest;
-            if (poi !== undefined && poi.activeModifiers !== undefined) {
+            if (poi?.activeModifiers) {
                 const posMult = skill.hasCarthuluPet ? 2 : 1;
                 this.addModifiers(`${getLangString('POINT_OF_INTEREST')}: ${poi.name}`, poi.activeModifiers, posMult);
             }
@@ -312,8 +314,34 @@ export class ModifiersComeFrom {
         player.equipment.slotArray.forEach((slot) => {
             const item = slot.item;
             if (slot.providesStats) {
-                if (item.modifiers !== undefined)
+                if (item.modifiers !== undefined) {
                     this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${item.name}`, item.modifiers);
+                    // AoD skill cape inherited
+                    if (game.registeredNamespaces.hasNamespace('melvorAoD')) {
+                        switch (item.id) {
+                            case "melvorF:Max_Skillcape":
+                            case "melvorTotH:Superior_Max_Skillcape":
+                            case "melvorTotH:Superior_Cape_Of_Completion":
+                            case "melvorF:Cape_of_Completion": {
+                                [
+                                    [game.archaeology, 'melvorAoD:Archaeology_Skillcape', 'melvorAoD:Superior_Archaeology_Skillcape'],
+                                    [game.cartography, 'melvorAoD:Cartography_Skillcape', 'melvorAoD:Superior_Cartography_Skillcape'],
+                                ].forEach((data) => {
+                                    let cape = undefined;
+                                    if (data[0].level >= 120) {
+                                        cape = game.items.getObjectByID(data[2]);
+                                    } else if (data[0].level >= 99) {
+                                        cape = game.items.getObjectByID(data[1]);
+                                    }
+                                    if (cape?.modifiers) {
+                                        this.addModifiers(`${getLangString('PAGE_NAME_CompletionLog_SUBCATEGORY_2')}: ${item.name}`, cape.modifiers);
+                                    }
+                                });
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         });
 
