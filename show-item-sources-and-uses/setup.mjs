@@ -2,25 +2,52 @@ export function setup(ctx) {
 
     const getObj = (obj, attrs) => {
         for (let attr of attrs.split('.')) {
-            if (!(attr in obj)) return undefined;
-            obj = obj[attr];
+            if (attr.endsWith('()')) {
+                switch (attr) {
+                    case 'ObjectValues()': obj = Object.values(obj); break;
+                    default: console.error('[MOD]ShowItemSourcesAndUses: getObj()');
+                }
+            } else {
+                if (!(attr in obj)) return undefined;
+                obj = obj[attr];
+            }
         }
         return obj;
     }
-
-    const dropItem = (itemID, dropTable) => dropTable?.drops?.some(x => x.item.id == itemID);
 
     const find = (itemID, obj) => itemID == obj.id;
     const findObj = (itemID, obj) => obj && itemID == obj.item.id;
     const findArray = (itemID, array) => array.some((x) => x.id == itemID);
     const findArrayObj = (itemID, array) => array?.some((x) => x.item.id == itemID)
+
+    const findDrop = (itemID, dropTable) => dropTable?.drops?.some(x => x.item.id == itemID);
+    const findDropArray = (itemID, array) => array.some((x) => findDrop(itemID, x));
+
+
     const findAlternativeCosts = (itemID, alternativeCosts) => alternativeCosts?.some((x) => findArrayObj(itemID, x.itemCosts));
-    const findArtefacts = (itemID, artefacts) => Object.values(artefacts).some((x) => dropItem(itemID, x));
 
     const qtyArrayObj = (itemID, array) => {
         let qty = array?.find((x) => x.item.id == itemID)?.quantity;
         if (qty == 0) qty = -1;
         return qty;
+    }
+
+    const chancePercent = (weight, totalWeight) => `${(100 * weight / totalWeight).toFixed(2)}%`;
+
+    const qtyDropTable = (itemID, dropTable) => {
+        if (dropTable instanceof Array) {
+            dropTable = dropTable.find((y) => y.drops.some((x) => x.item.id == itemID));
+        }
+        const drop = dropTable?.drops.find((x) => x.item.id == itemID);
+        if (drop) {
+            let qty = drop.minQuantity;
+            if (drop.minQuantity < drop.maxQuantity) {
+                qty += `~${drop.maxQuantity}`;
+            }
+            qty += ` (${chancePercent(drop.weight, dropTable.totalWeight)})`;
+            return qty;
+        }
+        return undefined;
     }
 
     const showItem = (item) => {
@@ -56,12 +83,20 @@ export function setup(ctx) {
 
     const appendQty = (itemID, item, func, obj, verb) => {
         let desc = showItem(item);
+        let qty = undefined;
         if (func == findArrayObj) {
-            let qty = qtyArrayObj(itemID, obj);
-            if (qty) {
-                if (qty < 0) qty = 0;
-                desc += ` ${verb} ${qty}`;
-            }
+            qty = qtyArrayObj(itemID, obj);
+        } else if (func == findDrop || func == findDropArray) {
+            qty = qtyDropTable(itemID, obj);
+        }
+
+        if (item instanceof RandomTravelEvent) {
+            qty = `(${chancePercent(item.weight, game.cartography.totalTravelEventWeight)})`;
+        }
+
+        if (qty) {
+            if (qty < 0) qty = 0;
+            desc += ` ${verb} ${qty}`;
         }
         return desc;
     }
@@ -69,7 +104,7 @@ export function setup(ctx) {
     const buildSkillData = () => {
         // No Astrology
         const skillData = [
-            ['Item(Open)', game.items, {}, {'dropTable': dropItem}],
+            ['Item(Open)', game.items, {}, {'dropTable': findDrop}],
             ['Dungeon', game.dungeons, {}, {'rewards': findArray}],
             ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}],
             [game.township.name, game.township.tasks.tasks, {'goals.items': findArrayObj}, {'rewards.items': findArrayObj}],
@@ -79,7 +114,7 @@ export function setup(ctx) {
             [game.firemaking.name, game.firemaking.actions, {'log': find}, {}],
             [game.cooking.name, game.cooking.actions, {'itemCosts': findArrayObj}, {'product': find, 'perfectItem': find}],
             [game.mining.name, game.mining.actions, {}, {'product': find}],
-            [game.thieving.name, game.thieving.actions, {}, {'lootTable': dropItem, 'uniqueDrop': findObj}],
+            [game.thieving.name, game.thieving.actions, {}, {'lootTable': findDrop, 'uniqueDrop': findObj}],
             [`${game.thieving.name}(Area)`, game.thieving.areas, {}, {'uniqueDrops': findArrayObj}],
             [game.agility.name, game.agility.actions, {'itemCosts': findArrayObj}, {}],
             [game.agility.name, game.agility.pillars, {'itemCosts': findArrayObj}, {}],
@@ -96,10 +131,10 @@ export function setup(ctx) {
         ];
         if (cloudManager.hasAoDEntitlement) {
             skillData.push([game.cartography.name, game.cartography.paperRecipes, {'costs.items': findArrayObj}, {'product': find}]);
-            skillData.push([`${game.cartography.name}(Event)`, game.cartography.travelEventRegistry, {}, {'rewards.items': findArrayObj}]);
+            skillData.push([game.cartography.name, game.cartography.travelEventRegistry, {}, {'rewards.items': findArrayObj}]);
 
-            skillData.push([game.archaeology.name, game.archaeology.actions, {}, {'artefacts': findArtefacts}]);
-            skillData.push([`${game.archaeology.name}(Museum)`, game.archaeology.museumRewards, {}, {'items': findArrayObj}]);
+            skillData.push([game.archaeology.name, game.archaeology.actions, {}, {'artefacts.ObjectValues()': findDropArray}]);
+            skillData.push([game.archaeology.name, game.archaeology.museumRewards, {}, {'items': findArrayObj}]);
         }
         return skillData;
     }
@@ -126,8 +161,8 @@ export function setup(ctx) {
 
         // monster
         game.monsters.allObjects.forEach((monster) => {
-            if ((monster.bones && monster.bones.item.id == itemID) || (!monster.isBoss && monster.lootTable && dropItem(itemID, monster.lootTable))) {
-                sources.push(['Monster', showItem(monster)]);
+            if ((monster.bones && monster.bones.item.id == itemID) || (!monster.isBoss && monster.lootTable && findDrop(itemID, monster.lootTable))) {
+                sources.push(['Monster', appendQty(itemID, monster, findDrop, monster.lootTable, 'gives')]);
             }
         });
 
