@@ -86,6 +86,8 @@ export function setup(ctx) {
         let qty = undefined;
         if (func == findArrayObj) {
             qty = qtyArrayObj(itemID, obj);
+        } else if (func == findObj) {
+            qty = obj.quantity;
         } else if (func == findDrop || func == findDropArray) {
             qty = qtyDropTable(itemID, obj);
         }
@@ -104,7 +106,7 @@ export function setup(ctx) {
     const buildSkillData = () => {
         // No Astrology
         const skillData = [
-            ['Item(Open)', game.items, {}, {'dropTable': findDrop}],
+            ['Item(Open)', game.items, {'keyItem': findObj}, {'dropTable': findDrop}],
             ['Dungeon', game.dungeons, {}, {'rewards': findArray}],
             ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}],
             [game.township.name, game.township.tasks.tasks, {'goals.items': findArrayObj}, {'rewards.items': findArrayObj}],
@@ -211,12 +213,16 @@ export function setup(ctx) {
         return {sources, uses}
     }
 
+    const undiscoveredMark = (item) => {
+        return game.stats.itemFindCount(item) > 0 ? '' : ' <small style="color: red;">X</small>';
+    }
+
     const showList = (itemID) => {
         let { sources, uses } = calcList(itemID);
 
         const item = game.items.getObjectByID(itemID);
 
-        let html = `<h5 class="font-w400 mb-1">${item.name}</h5>`;
+        let html = `<h5 class="font-w400 mb-1">${item.name} ${undiscoveredMark(item)}</h5>`;
         html += `<img src="${item.media}" style="width: 48px; height: 48px;"></img>`;
         html += '<p></p>';
 
