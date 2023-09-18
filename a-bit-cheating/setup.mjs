@@ -41,44 +41,5 @@ export function setup(ctx) {
                 }
             }
         });
-
-        // if (generalSettings.get('agility-cost-reductions')) {
-        //     const agilityObstacleInfo = document.getElementById('agility-obstacle-info-1');
-        //     if (agilityObstacleInfo) {
-        //         document.getElementById('agility-obstacle-info-1').textContent = templateLangString('MENU_TEXT_OBSTACLE_INFO_1', {
-        //             reductionCap: `100`
-        //         });
-        //     }
-
-        //     ctx.patch(Agility, 'onLoad').after(function() {
-        //         document.getElementById('agility-obstacle-info-1').textContent = templateLangString('MENU_TEXT_OBSTACLE_INFO_1', {
-        //             reductionCap: `100`
-        //         });
-        //     });
-
-        //     ctx.patch(Agility, 'getObstacleCostModifier').replace(function(o, obstacle) {
-        //         let modifier = this.game.modifiers.increasedAgilityObstacleCost - this.game.modifiers.decreasedAgilityObstacleCost;
-        //         const masteryLevel = this.getMasteryLevel(obstacle);
-        //         if (masteryLevel >= 80)
-        //             modifier -= 10;
-        //         if (masteryLevel >= 95)
-        //             modifier -= 10;
-        //         if (this.isPoolTierActive(2))
-        //             modifier -= 10;
-        //         return Math.max(modifier, -100); // change this line
-        //     });
-
-        //     ctx.patch(Agility, 'getObstacleItemCostModifier').replace(function(o, obstacle) {
-        //         let modifier = this.getObstacleCostModifier(obstacle);
-        //         if (this.isPoolTierActive(3))
-        //             modifier -= 15;
-        //         let buildCount = this.obstacleBuildCount.get(obstacle);
-        //         if (buildCount !== undefined) {
-        //             buildCount = Math.min(buildCount, 10);
-        //             modifier -= 4 * buildCount;
-        //         }
-        //         return Math.max(modifier, -100); // change this line
-        //     });
-        // }
     });
 }
