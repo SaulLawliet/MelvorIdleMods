@@ -1101,6 +1101,9 @@ export async function setup(ctx) {
     
     const viewModifiers = (name, skill, descriptions) => {
         let passives = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${name}</h5>`;
+        if (skill && !skill.isCombat) {
+            passives += ` <button class="btn-info font-w600 font-size-sm" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showSkillItems('${skill.id}', true)">${getLangString('MENU_TEXT_ITEMS')} ${getLangString('SEARCH')}</button>`
+        }
         passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small></small></h5>`;
         if (!generalSettings.get('show-checkpoints') && skill && skill.hasMastery) {
             passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small>(Does not include ${getLangString('MENU_TEXT_MASTERY_POOL_CHECKPOINTS')})</small></h5>`;
@@ -1395,6 +1398,69 @@ export async function setup(ctx) {
     
         viewModifiers(game.openPage.name, skill, descriptions);
     }
+    
+    const findSkillItems = (skill) => {
+        const list = [];
+        const localID = skill.localID;
+        game.items.allObjects.forEach((item) => {
+            if (item instanceof EquipmentItem && item.modifiers) {
+                for (let entry of Object.entries(item.modifiers)) {
+                    if (entry[1] instanceof Array) {
+                        if (entry[1].some((x) => x.skill == skill)) {
+                            list.push(item);
+                            break;
+                        }
+                    } else {
+                        if (entry[0].indexOf(localID) >= 0 || modifierData[entry[0]].tags.includes(localID.toLocaleLowerCase())) {
+                            list.push(item);
+                            break;
+                        }
+    
+                    }
+                }
+            }
+        });
+        return list;
+    }
+    
+    const showSkillItems = (skillID, showBackButton = false) => {
+        const skill = game.skills.getObjectByID(skillID);
+        const items = findSkillItems(skill);
+        let html = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${skill.name}</h5>`;
+        html += '<table class="font-w400 font-size-sm mb-1" style="margin: auto; border-collapse: unset;">';
+        items.forEach((item) => {
+            html += `<tr style="text-align: left;">
+                <td class="text-info"><img class="skill-icon-xxs" src="${item.media}"> ${item.name}: </td>
+                <td>
+                    <button class="btn-primary" style="border: 0px;" onclick="viewItemStats(game.items.getObjectByID('${item.id}'), game.combat.player.equipToSetEquipment)">View</button>`;
+            if (game.stats.itemFindCount(item) <= 0) {
+                if (mod.api.ShowItemSourcesAndUses) {
+                    html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}');">How</button>`;
+                }
+                html += ' <small style="color: red;">X</small>';
+            }
+            html += '</td></tr>';
+        });
+        html += '</table>'
+        html += '<span class="font-w400 font-size-sm mb-1"><small style="color: red;">X</small> means not found</span>'
+
+        if (showBackButton) {
+            SwalLocale.fire({
+                html: html,
+                showCancelButton: true,
+                confirmButtonText: getLangString('ASTROLOGY_BTN_2'),
+                cancelButtonText: getLangString('FARMING_MISC_24'),
+            }).then((result) => {
+                if (result.value) {
+                    showSkillModifiers();
+                }
+            });
+        } else {
+            SwalLocale.fire({
+                html: html
+            });
+        }
+    }
 
     const numToStr = (num) => {
         if (num.toFixed) {
@@ -1657,7 +1723,8 @@ export async function setup(ctx) {
     };
 
     ctx.api({
-        showModifiersComeFrom
+        showModifiersComeFrom,
+        showSkillItems,
     });
 
     ctx.onInterfaceReady(async (ctx) => {

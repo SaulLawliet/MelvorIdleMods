@@ -114,6 +114,7 @@ export async function setup(ctx) {
     const {
         showModifiersComeFrom,
         showSkillModifiers,
+        showSkillItems,
     } = await ctx.loadModule('src/show-skill-modifiers.mjs');
 
     const {
@@ -144,7 +145,8 @@ export async function setup(ctx) {
     } = await ctx.loadModule('src/skill.mjs');
 
     ctx.api({
-        showModifiersComeFrom
+        showModifiersComeFrom,
+        showSkillItems,
     });
 
     ctx.onInterfaceReady(async (ctx) => {
