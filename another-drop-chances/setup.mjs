@@ -37,7 +37,8 @@ export function setup(ctx) {
     });
 
     ctx.patch(Bank, 'fireItemUpgradeModal').after(function(returnValue, upgrade, rootItem) {
-        $('#item-view-name-upgrade').html(`${upgrade.upgradedItem.name}${undiscoveredMark(upgrade.upgradedItem)}`);
+        // $('#item-view-name-upgrade').html(`${upgrade.upgradedItem.name}${undiscoveredMark(upgrade.upgradedItem)}`);
+        itemUpgradeMenu.itemName.innerHTML += undiscoveredMark(upgrade.upgradedItem);
     });
 
     ctx.patch(ArtisanMenu, 'setProduct').after(function(returnValue, item, qty) {
