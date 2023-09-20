@@ -3,7 +3,7 @@ const generalSettings = ctx.settings.section('General');
 
 const { ModifiersComeFrom } = await ctx.loadModule('src/modifiers-come-from.mjs');
 
-const showModifiersComeFrom = (modifier, modifierValue, skillId, showBackButton = false) => {
+const showModifiersComeFrom = (modifier, modifierValue, skillId, backFunction = undefined) => {
     const skill = game.skills.registeredObjects.get(skillId);
     const mcf = new ModifiersComeFrom(modifier, skill);
     mcf.compute();
@@ -34,7 +34,7 @@ const showModifiersComeFrom = (modifier, modifierValue, skillId, showBackButton 
         html += `<tr style="text-align: left;"><td class="text-warning">Please report bugs if you like, thx.</td><td></td></tr>`;
     }
     html += '</table>'
-    if (showBackButton) {
+    if (backFunction) {
         SwalLocale.fire({
             html: html,
             showCancelButton: true,
@@ -42,7 +42,7 @@ const showModifiersComeFrom = (modifier, modifierValue, skillId, showBackButton 
             cancelButtonText: getLangString('FARMING_MISC_24'),
         }).then((result) => {
             if (result.value) {
-                showSkillModifiers();
+                backFunction();
             }
         });
     } else {
@@ -55,7 +55,7 @@ const showModifiersComeFrom = (modifier, modifierValue, skillId, showBackButton 
 const viewModifiers = (name, skill, descriptions) => {
     let passives = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${name}</h5>`;
     if (skill && !skill.isCombat) {
-        passives += ` <button class="btn-info font-w600 font-size-sm" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showSkillItems('${skill.id}', true)">${getLangString('MENU_TEXT_ITEMS')} ${getLangString('SEARCH')}</button>`
+        passives += ` <button class="btn-info font-w600 font-size-sm" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showSkillItems('${skill.id}', mod.api.ShowSkillModifiers.showSkillModifiers)">${getLangString('MENU_TEXT_ITEMS')} ${getLangString('SEARCH')}</button>`
     }
     passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small></small></h5>`;
     if (!generalSettings.get('show-checkpoints') && skill && skill.hasMastery) {
@@ -64,7 +64,7 @@ const viewModifiers = (name, skill, descriptions) => {
     passives += descriptions.map(([text, textClass, key, value, skill]) => {
         let html = `<h5 class="font-w400 font-size-sm mb-1 ${textClass}">${text}`;
         if (key && !generalSettings.get('hidden-more-button')) {
-            html += ` <button class="btn-primary" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showModifiersComeFrom('${key}', ${value}, '${skill ? skill.id : null}', true);">more</button>`
+            html += ` <button class="btn-primary" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showModifiersComeFrom('${key}', ${value}, '${skill ? skill.id : null}', mod.api.ShowSkillModifiers.showSkillModifiers);">more</button>`
         }
         html += '</h5>';
         return html;
@@ -376,7 +376,7 @@ const findSkillItems = (skill) => {
     return list;
 }
 
-const showSkillItems = (skillID, showBackButton = false) => {
+const showSkillItems = (skillID, backFunction = undefined) => {
     const skill = game.skills.getObjectByID(skillID);
     const items = findSkillItems(skill);
     let html = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${skill.name}</h5>`;
@@ -388,7 +388,7 @@ const showSkillItems = (skillID, showBackButton = false) => {
                 <button class="btn-primary" style="border: 0px;" onclick="viewItemStats(game.items.getObjectByID('${item.id}'), game.combat.player.equipToSetEquipment)">View</button>`;
         if (game.stats.itemFindCount(item) <= 0) {
             if (mod.api.ShowItemSourcesAndUses) {
-                html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}');">How</button>`;
+                html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}', mod.api.ShowSkillModifiers.showSkillItems('${skillID}'));">How</button>`;
             }
             html += ' <small style="color: red;">X</small>';
         }
@@ -397,7 +397,7 @@ const showSkillItems = (skillID, showBackButton = false) => {
     html += '</table>'
     html += '<span class="font-w400 font-size-sm mb-1"><small style="color: red;">X</small> means not found</span>'
 
-    if (showBackButton) {
+    if (backFunction) {
         SwalLocale.fire({
             html: html,
             showCancelButton: true,
@@ -405,7 +405,7 @@ const showSkillItems = (skillID, showBackButton = false) => {
             cancelButtonText: getLangString('FARMING_MISC_24'),
         }).then((result) => {
             if (result.value) {
-                showSkillModifiers();
+                backFunction();
             }
         });
     } else {

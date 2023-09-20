@@ -99,31 +99,25 @@ export class ModifiersComeFrom {
             this.computeCartography();
         }
 
-        // - character.computeAllStats()
-        //   - computeAttackType(): ignore
-        //   - computeModifiers(): player.computeModifiers()
-        //   - computeAttackSelection()
-        //   - computeLevels()
-        //   - computeEquipmentStats()
-        //   - computeCombatStats()
-
         // - player.computeModifiers()
-        //   - addEquippedItemModifiers: this.computeEquippedItem()
-        //   - addSummonSynergyModifiers: this.this.computeEquippedItem()
-        //   - addConditionalModifiers: this.computeConditional()
-        //   - addPrayerModifiers: this.computePrayer()
-        //   - addMiscModifiers: this.computeMisc()
-        //   - addAttackStyleModifiers: this.computeAttackStyle();
-        //   - addAuroraModifiers: this.computeAurora();
-        //   - addCombatAreaEffectModifiers: this.computeCombatAreaEffect();
 
-        this.computeEquippedItem();
-        this.computeConditional();
-        this.computePrayer();
+        // addProviderModifiers(): go computeProvidedStats()
+        this.computeEquippedItem(); // addEquippedItemModifiers
+        this.computeConditional(); // addConditionalModifiers
+        this.computeAttackStyle(); // addAttackStyleModifiers
+        // addPassiveModifiers
+        // addTargetModifiers
+        this.computePrayer(); // addPrayerModifiers
+        this.computeGameMode(); // addGamemodeModifiers
+        this.computeAurora(); // addAuroraModifiers
+        // addCurseModifiers
         this.computeMisc();
-        this.computeAttackStyle();
-        this.computeAurora();
+        this.computeSummonSynergy();
+        // addEffectModifiers
+        // addMiscSummoningModifiers
         this.computeCombatAreaEffect();
+        this.computeAncientRelic();
+        // addInheretedModifiers: see computeEquippedItem
     }
 
     computeAgility() {
@@ -176,18 +170,20 @@ export class ModifiersComeFrom {
 
         const skill = game.skills.registeredObjects.get("melvorD:Astrology");
         skill.actions.forEach((recipe) => {
+            const multi = skill.hasMasterRelic && skill.isConstellationComplete(recipe) ? 2 : 1;
+
             recipe.standardModifiers.forEach((astroMod, modID) => {
                 const bought = recipe.standardModsBought[modID];
                 if (bought <= 0)
                     return;
-                const value = bought * astroMod.incrementValue;
+                const value = bought * astroMod.incrementValue * multi;
                 this.addArrayModifiers(`${skill.name}: ${recipe.name}`, getModifierElement(astroMod, value));
             });
             recipe.uniqueModifiers.forEach((astroMod, modID) => {
                 const bought = recipe.uniqueModsBought[modID];
                 if (bought <= 0)
                     return;
-                const value = bought * astroMod.incrementValue;
+                const value = bought * astroMod.incrementValue * multi;
                 this.addArrayModifiers(`${skill.name}: ${recipe.name}`, getModifierElement(astroMod, value));
             });
         });
@@ -349,11 +345,6 @@ export class ModifiersComeFrom {
             if (synergy.playerModifiers !== undefined)
                 this.addModifiers(`ItemSynergy: ${synergy.items.length}/${synergy.items.length}`, synergy.playerModifiers);
         });
-
-        const synergy = player.activeSummoningSynergy;
-        if (synergy !== undefined) {
-            this.addModifiers(`SummoningSynergy: ${synergy.summons[0].name}-${synergy.summons[1].name}`, synergy.modifiers);
-        }
     }
 
     computeConditional() {
@@ -368,10 +359,28 @@ export class ModifiersComeFrom {
         });
     }
 
+    computeAttackStyle() {
+        if (game.combat.player.attackStyle !== undefined)
+            this.addModifiers(`${getLangString('COMBAT_MISC_31')}`, game.combat.player.attackStyle.modifiers);
+    }
+
     computePrayer() {
         game.combat.player.activePrayers.forEach((prayer) => {
             this.addModifiers(`${getLangString('SKILL_NAME_Prayer')}: ${prayer.name}`, prayer.modifiers);
         });
+    }
+
+    computeGameMode() {
+        this.addModifiers('GAME MODE', game.currentGamemode.playerModifiers);
+    }
+
+    computeAurora() {
+        if (game.combat.player.canAurora) {
+            const aurora = game.combat.player.spellSelection.aurora;
+            if (aurora !== undefined) {
+                this.addModifiers(`${getLangString('COMBAT_MISC_AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
+            }
+        }
     }
 
     computeMisc() {
@@ -392,17 +401,10 @@ export class ModifiersComeFrom {
         }
     }
 
-    computeAttackStyle() {
-        if (game.combat.player.attackStyle !== undefined)
-            this.addModifiers(`${getLangString('COMBAT_MISC_31')}`, game.combat.player.attackStyle.modifiers);
-    }
-
-    computeAurora() {
-        if (game.combat.player.canAurora) {
-            const aurora = game.combat.player.spellSelection.aurora;
-            if (aurora !== undefined) {
-                this.addModifiers(`${getLangString('COMBAT_MISC_AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
-            }
+    computeSummonSynergy() {
+        const synergy = game.combat.player.activeSummoningSynergy;
+        if (synergy !== undefined) {
+            this.addModifiers(`SummoningSynergy: ${synergy.summons[0].name}-${synergy.summons[1].name}`, synergy.modifiers);
         }
     }
 
@@ -413,6 +415,22 @@ export class ModifiersComeFrom {
             const name = area ? area.name : 'unknown';
             this.addModifiers(name, manager.playerAreaModifiers);
         }
+    }
+
+    computeAncientRelic() {
+        game.skills.forEach((skill) => {
+            skill.ancientRelicsFound.forEach((_, relic) => {
+                if (relic.modifiers !== undefined) {
+                    this.addModifiers(relic.name, relic.modifiers);
+                }
+            });
+            if (
+                skill.ancientRelicsFound.size >= skill.ancientRelics.length &&
+                skill.completedAncientRelic !== undefined
+            ) {
+                this.addModifiers(skill.completedAncientRelic.name, skill.completedAncientRelic.modifiers);
+            }
+        });
     }
 
 }

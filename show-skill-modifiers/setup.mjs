@@ -146,6 +146,7 @@ export async function setup(ctx) {
 
     ctx.api({
         showModifiersComeFrom,
+        showSkillModifiers,
         showSkillItems,
     });
 

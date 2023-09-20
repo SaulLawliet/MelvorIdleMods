@@ -619,31 +619,25 @@ class ModifiersComeFrom {
             this.computeCartography();
         }
 
-        // - character.computeAllStats()
-        //   - computeAttackType(): ignore
-        //   - computeModifiers(): player.computeModifiers()
-        //   - computeAttackSelection()
-        //   - computeLevels()
-        //   - computeEquipmentStats()
-        //   - computeCombatStats()
-
         // - player.computeModifiers()
-        //   - addEquippedItemModifiers: this.computeEquippedItem()
-        //   - addSummonSynergyModifiers: this.this.computeEquippedItem()
-        //   - addConditionalModifiers: this.computeConditional()
-        //   - addPrayerModifiers: this.computePrayer()
-        //   - addMiscModifiers: this.computeMisc()
-        //   - addAttackStyleModifiers: this.computeAttackStyle();
-        //   - addAuroraModifiers: this.computeAurora();
-        //   - addCombatAreaEffectModifiers: this.computeCombatAreaEffect();
 
-        this.computeEquippedItem();
-        this.computeConditional();
-        this.computePrayer();
+        // addProviderModifiers(): go computeProvidedStats()
+        this.computeEquippedItem(); // addEquippedItemModifiers
+        this.computeConditional(); // addConditionalModifiers
+        this.computeAttackStyle(); // addAttackStyleModifiers
+        // addPassiveModifiers
+        // addTargetModifiers
+        this.computePrayer(); // addPrayerModifiers
+        this.computeGameMode(); // addGamemodeModifiers
+        this.computeAurora(); // addAuroraModifiers
+        // addCurseModifiers
         this.computeMisc();
-        this.computeAttackStyle();
-        this.computeAurora();
+        this.computeSummonSynergy();
+        // addEffectModifiers
+        // addMiscSummoningModifiers
         this.computeCombatAreaEffect();
+        this.computeAncientRelic();
+        // addInheretedModifiers: see computeEquippedItem
     }
 
     computeAgility() {
@@ -696,18 +690,20 @@ class ModifiersComeFrom {
 
         const skill = game.skills.registeredObjects.get("melvorD:Astrology");
         skill.actions.forEach((recipe) => {
+            const multi = skill.hasMasterRelic && skill.isConstellationComplete(recipe) ? 2 : 1;
+
             recipe.standardModifiers.forEach((astroMod, modID) => {
                 const bought = recipe.standardModsBought[modID];
                 if (bought <= 0)
                     return;
-                const value = bought * astroMod.incrementValue;
+                const value = bought * astroMod.incrementValue * multi;
                 this.addArrayModifiers(`${skill.name}: ${recipe.name}`, getModifierElement(astroMod, value));
             });
             recipe.uniqueModifiers.forEach((astroMod, modID) => {
                 const bought = recipe.uniqueModsBought[modID];
                 if (bought <= 0)
                     return;
-                const value = bought * astroMod.incrementValue;
+                const value = bought * astroMod.incrementValue * multi;
                 this.addArrayModifiers(`${skill.name}: ${recipe.name}`, getModifierElement(astroMod, value));
             });
         });
@@ -747,7 +743,7 @@ class ModifiersComeFrom {
         this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')}`, skill.townData.worship.modifiers, worshipModifierMulti, 1);
         skill.WORSHIP_CHECKPOINTS.forEach((checkpoint, id) => {
             if (skill.worshipPercent >= checkpoint)
-            this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id], worshipModifierMulti, 1);
+                this.addModifiers(`${skill.name}: ${getLangString('TOWNSHIP_MENU_WORSHIP')} at ${checkpoint}%`, skill.townData.worship.checkpoints[id], worshipModifierMulti, 1);
         });
 
         skill.buildings.forEach((building) => {
@@ -869,11 +865,6 @@ class ModifiersComeFrom {
             if (synergy.playerModifiers !== undefined)
                 this.addModifiers(`ItemSynergy: ${synergy.items.length}/${synergy.items.length}`, synergy.playerModifiers);
         });
-
-        const synergy = player.activeSummoningSynergy;
-        if (synergy !== undefined) {
-            this.addModifiers(`SummoningSynergy: ${synergy.summons[0].name}-${synergy.summons[1].name}`, synergy.modifiers);
-        }
     }
 
     computeConditional() {
@@ -888,10 +879,28 @@ class ModifiersComeFrom {
         });
     }
 
+    computeAttackStyle() {
+        if (game.combat.player.attackStyle !== undefined)
+            this.addModifiers(`${getLangString('COMBAT_MISC_31')}`, game.combat.player.attackStyle.modifiers);
+    }
+
     computePrayer() {
         game.combat.player.activePrayers.forEach((prayer) => {
             this.addModifiers(`${getLangString('SKILL_NAME_Prayer')}: ${prayer.name}`, prayer.modifiers);
         });
+    }
+
+    computeGameMode() {
+        this.addModifiers('GAME MODE', game.currentGamemode.playerModifiers);
+    }
+
+    computeAurora() {
+        if (game.combat.player.canAurora) {
+            const aurora = game.combat.player.spellSelection.aurora;
+            if (aurora !== undefined) {
+                this.addModifiers(`${getLangString('COMBAT_MISC_AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
+            }
+        }
     }
 
     computeMisc() {
@@ -912,17 +921,10 @@ class ModifiersComeFrom {
         }
     }
 
-    computeAttackStyle() {
-        if (game.combat.player.attackStyle !== undefined)
-            this.addModifiers(`${getLangString('COMBAT_MISC_31')}`, game.combat.player.attackStyle.modifiers);
-    }
-
-    computeAurora() {
-        if (game.combat.player.canAurora) {
-            const aurora = game.combat.player.spellSelection.aurora;
-            if (aurora !== undefined) {
-                this.addModifiers(`${getLangString('COMBAT_MISC_AURORA_SPELLBOOK_NAME')}: ${aurora.name}`, aurora.modifiers);
-            }
+    computeSummonSynergy() {
+        const synergy = game.combat.player.activeSummoningSynergy;
+        if (synergy !== undefined) {
+            this.addModifiers(`SummoningSynergy: ${synergy.summons[0].name}-${synergy.summons[1].name}`, synergy.modifiers);
         }
     }
 
@@ -935,7 +937,24 @@ class ModifiersComeFrom {
         }
     }
 
+    computeAncientRelic() {
+        game.skills.forEach((skill) => {
+            skill.ancientRelicsFound.forEach((_, relic) => {
+                if (relic.modifiers !== undefined) {
+                    this.addModifiers(relic.name, relic.modifiers);
+                }
+            });
+            if (
+                skill.ancientRelicsFound.size >= skill.ancientRelics.length &&
+                skill.completedAncientRelic !== undefined
+            ) {
+                this.addModifiers(skill.completedAncientRelic.name, skill.completedAncientRelic.modifiers);
+            }
+        });
+    }
+
 }
+
 
 export async function setup(ctx) {
     const lang = {
@@ -1050,7 +1069,7 @@ export async function setup(ctx) {
         return replaceTooltip(returnValue);
     });
 
-    const showModifiersComeFrom = (modifier, modifierValue, skillId, showBackButton = false) => {
+    const showModifiersComeFrom = (modifier, modifierValue, skillId, backFunction = undefined) => {
         const skill = game.skills.registeredObjects.get(skillId);
         const mcf = new ModifiersComeFrom(modifier, skill);
         mcf.compute();
@@ -1081,7 +1100,7 @@ export async function setup(ctx) {
             html += `<tr style="text-align: left;"><td class="text-warning">Please report bugs if you like, thx.</td><td></td></tr>`;
         }
         html += '</table>'
-        if (showBackButton) {
+        if (backFunction) {
             SwalLocale.fire({
                 html: html,
                 showCancelButton: true,
@@ -1089,7 +1108,7 @@ export async function setup(ctx) {
                 cancelButtonText: getLangString('FARMING_MISC_24'),
             }).then((result) => {
                 if (result.value) {
-                    showSkillModifiers();
+                    backFunction();
                 }
             });
         } else {
@@ -1102,7 +1121,7 @@ export async function setup(ctx) {
     const viewModifiers = (name, skill, descriptions) => {
         let passives = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${name}</h5>`;
         if (skill && !skill.isCombat) {
-            passives += ` <button class="btn-info font-w600 font-size-sm" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showSkillItems('${skill.id}', true)">${getLangString('MENU_TEXT_ITEMS')} ${getLangString('SEARCH')}</button>`
+            passives += ` <button class="btn-info font-w600 font-size-sm" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showSkillItems('${skill.id}', mod.api.ShowSkillModifiers.showSkillModifiers)">${getLangString('MENU_TEXT_ITEMS')} ${getLangString('SEARCH')}</button>`
         }
         passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small></small></h5>`;
         if (!generalSettings.get('show-checkpoints') && skill && skill.hasMastery) {
@@ -1111,7 +1130,7 @@ export async function setup(ctx) {
         passives += descriptions.map(([text, textClass, key, value, skill]) => {
             let html = `<h5 class="font-w400 font-size-sm mb-1 ${textClass}">${text}`;
             if (key && !generalSettings.get('hidden-more-button')) {
-                html += ` <button class="btn-primary" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showModifiersComeFrom('${key}', ${value}, '${skill ? skill.id : null}', true);">more</button>`
+                html += ` <button class="btn-primary" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showModifiersComeFrom('${key}', ${value}, '${skill ? skill.id : null}', mod.api.ShowSkillModifiers.showSkillModifiers);">more</button>`
             }
             html += '</h5>';
             return html;
@@ -1423,7 +1442,7 @@ export async function setup(ctx) {
         return list;
     }
     
-    const showSkillItems = (skillID, showBackButton = false) => {
+    const showSkillItems = (skillID, backFunction = undefined) => {
         const skill = game.skills.getObjectByID(skillID);
         const items = findSkillItems(skill);
         let html = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${skill.name}</h5>`;
@@ -1435,7 +1454,7 @@ export async function setup(ctx) {
                     <button class="btn-primary" style="border: 0px;" onclick="viewItemStats(game.items.getObjectByID('${item.id}'), game.combat.player.equipToSetEquipment)">View</button>`;
             if (game.stats.itemFindCount(item) <= 0) {
                 if (mod.api.ShowItemSourcesAndUses) {
-                    html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}');">How</button>`;
+                    html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}', mod.api.ShowSkillModifiers.showSkillItems('${skillID}'));">How</button>`;
                 }
                 html += ' <small style="color: red;">X</small>';
             }
@@ -1443,8 +1462,8 @@ export async function setup(ctx) {
         });
         html += '</table>'
         html += '<span class="font-w400 font-size-sm mb-1"><small style="color: red;">X</small> means not found</span>'
-
-        if (showBackButton) {
+    
+        if (backFunction) {
             SwalLocale.fire({
                 html: html,
                 showCancelButton: true,
@@ -1452,7 +1471,7 @@ export async function setup(ctx) {
                 cancelButtonText: getLangString('FARMING_MISC_24'),
             }).then((result) => {
                 if (result.value) {
-                    showSkillModifiers();
+                    backFunction();
                 }
             });
         } else {
@@ -1724,6 +1743,7 @@ export async function setup(ctx) {
 
     ctx.api({
         showModifiersComeFrom,
+        showSkillModifiers,
         showSkillItems,
     });
 
