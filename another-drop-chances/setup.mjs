@@ -89,5 +89,16 @@ export function setup(ctx) {
                 this.artefactsLarge.appendChild(el);
             }
         );
+
+        const createAverageValue = (parent, dropTable) => {
+            const el = createElement("span");
+            el.innerHTML = `Average Value: ${dropTable.averageDropValue.toFixed(2)} GP`;
+            parent.appendChild(el);
+        }
+
+        createAverageValue(this.artefactsTiny, digSite.artefacts.tiny);
+        createAverageValue(this.artefactsSmall, digSite.artefacts.small);
+        createAverageValue(this.artefactsMedium, digSite.artefacts.medium);
+        createAverageValue(this.artefactsLarge, digSite.artefacts.large);
     });
 }
