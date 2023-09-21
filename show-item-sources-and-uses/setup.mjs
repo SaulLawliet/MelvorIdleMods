@@ -106,6 +106,7 @@ export function setup(ctx) {
     const buildSkillData = () => {
         // No Astrology
         const skillData = [
+            ['Skill(Rare Drop)', game.skills, {}, {'rareDrops': findArrayObj}],
             ['Item(Open)', game.items, {'keyItem': findObj}, {'dropTable': findDrop}],
             ['Dungeon', game.dungeons, {}, {'rewards': findArray}],
             ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}],
@@ -217,7 +218,7 @@ export function setup(ctx) {
         return game.stats.itemFindCount(item) > 0 ? '' : ' <small style="color: red;">X</small>';
     }
 
-    const showList = (itemID) => {
+    const showList = (itemID, backFunction, ...backArgs) => {
         let { sources, uses } = calcList(itemID);
 
         const item = game.items.getObjectByID(itemID);
@@ -249,9 +250,22 @@ export function setup(ctx) {
             html += '<h5 class="font-w600 font-size-sm mb-1">none</h5>';
         }
 
-        SwalLocale.fire({
-            html: html,
-        });
+        if (backFunction) {
+            SwalLocale.fire({
+                html: html,
+                showCancelButton: true,
+                confirmButtonText: getLangString('ASTROLOGY_BTN_2'),
+                cancelButtonText: getLangString('FARMING_MISC_24'),
+            }).then((result) => {
+                if (result.value) {
+                    backFunction(...backArgs);
+                }
+            });
+        } else {
+            SwalLocale.fire({
+                html: html
+            });
+        }
     }
 
     ctx.api({
