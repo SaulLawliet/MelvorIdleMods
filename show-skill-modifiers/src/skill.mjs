@@ -496,6 +496,17 @@ class IArchaeology extends IGatheringSkill {
     getMasteryModifiedInterval() { return this.getActualInterval(); }
 
     getBaseXP() { return this.skill.getArtefactSkillXPForDigSite(this.digSite); }
+    appendGroupForXP(extra) {
+        if (
+            game.modifiers.increasedArchaeologyCommonItemSkillXP > 0 &&
+            this.skill.lastRarityLocated >= ArtefactWeightRange.COMMON &&
+            this.skill.lastRarityLocated < ArtefactWeightRange.NOTHING
+        ) {
+            const value = game.modifiers.increasedArchaeologyCommonItemSkillXP
+            extra.sum += value;
+            extra.descriptions.push([getLangString('GAME_GUIDE_CARTOGRAPHY_35'), value]);
+        }
+    }
 
     appendGroupForMasteryXP(extra) {
         this.checkPoolTierActive(extra, 0, 5);

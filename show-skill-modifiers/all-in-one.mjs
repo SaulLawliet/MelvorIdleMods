@@ -500,6 +500,17 @@ class IArchaeology extends IGatheringSkill {
     getMasteryModifiedInterval() { return this.getActualInterval(); }
 
     getBaseXP() { return this.skill.getArtefactSkillXPForDigSite(this.digSite); }
+    appendGroupForXP(extra) {
+        if (
+            game.modifiers.increasedArchaeologyCommonItemSkillXP > 0 &&
+            this.skill.lastRarityLocated >= ArtefactWeightRange.COMMON &&
+            this.skill.lastRarityLocated < ArtefactWeightRange.NOTHING
+        ) {
+            const value = game.modifiers.increasedArchaeologyCommonItemSkillXP
+            extra.sum += value;
+            extra.descriptions.push([getLangString('GAME_GUIDE_CARTOGRAPHY_35'), value]);
+        }
+    }
 
     appendGroupForMasteryXP(extra) {
         this.checkPoolTierActive(extra, 0, 5);
@@ -1456,13 +1467,15 @@ export async function setup(ctx) {
                 if (mod.api.ShowItemSourcesAndUses) {
                     html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}', mod.api.ShowSkillModifiers.showSkillItems('${skillID}'));">How</button>`;
                 }
-                html += ' <small style="color: red;">X</small>';
-            }
+            html += ' <span class="font-w400 text-danger">X</span>';
+        } else if (game.combat.player.equipment.slotMap.has(item)) {
+            html += ' <span class="font-w400 text-success">Y</span>';
+        }
             html += '</td></tr>';
         });
         html += '</table>'
-        html += '<span class="font-w400 font-size-sm mb-1"><small style="color: red;">X</small> means not found</span>'
-    
+        html += '<span class="font-w400 font-size-sm mb-1"><small class="text-success">Y</small> means wearing</span>'
+        html += '<br><span class="font-w400 font-size-sm mb-1"><small class="text-danger">X</small> means not found</span>'
         if (backFunction) {
             SwalLocale.fire({
                 html: html,
