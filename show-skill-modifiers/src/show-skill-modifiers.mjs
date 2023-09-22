@@ -388,7 +388,7 @@ const showSkillItems = (skillID, backFunction = undefined) => {
                 <button class="btn-primary" style="border: 0px;" onclick="viewItemStats(game.items.getObjectByID('${item.id}'), game.combat.player.equipToSetEquipment)">View</button>`;
         if (game.stats.itemFindCount(item) <= 0) {
             if (mod.api.ShowItemSourcesAndUses) {
-                html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}', mod.api.ShowSkillModifiers.showSkillItems('${skillID}'));">How</button>`;
+                html += ` <button class="btn-info" style="border: 0px;" onclick="mod.api.ShowItemSourcesAndUses.showList('${item.id}', mod.api.ShowSkillModifiers.showSkillItems, '${skillID}');">How</button>`;
             }
             html += ' <span class="font-w400 text-danger">X</span>';
         } else if (game.combat.player.equipment.slotMap.has(item)) {
