@@ -34,7 +34,7 @@ export function setup(ctx) {
 
     const chancePercent = (weight, totalWeight) => `${(100 * weight / totalWeight).toFixed(2)}%`;
 
-    const qtyDropTable = (itemID, dropTable) => {
+    const qtyDropTable = (itemID, dropTable, item) => {
         if (dropTable instanceof Array) {
             dropTable = dropTable.find((y) => y.drops.some((x) => x.item.id == itemID));
         }
@@ -44,7 +44,7 @@ export function setup(ctx) {
             if (drop.minQuantity < drop.maxQuantity) {
                 qty += `~${drop.maxQuantity}`;
             }
-            qty += ` (${chancePercent(drop.weight, dropTable.totalWeight)})`;
+            qty += ` (${chancePercent(drop.weight * ((item instanceof Monster) ? (item.lootChance / 100) : 1), dropTable.totalWeight)})`;
             return qty;
         }
         return undefined;
@@ -67,6 +67,9 @@ export function setup(ctx) {
             done = item.isDiscovered;
         } else if (item instanceof RandomTravelEvent) {
             data = item.localID;
+        } else if (item instanceof WorldMapMasteryBonus) {
+            data = `${getLangString('HEX_MASTERY')} ${item.localID}`;
+            done = item.awarded;
         }
 
         if (item.media) {
@@ -74,6 +77,9 @@ export function setup(ctx) {
         }
         if (item instanceof Item) {
             data = `<a href="javascript:mod.api.ShowItemSourcesAndUses.showList('${item.id}');">${data}</a>`;
+            if (item instanceof EquipmentItem) {
+                done = game.stats.itemFindCount(item) > 0;
+            }
         }
         if (done) {
             data = `<del>${data}</del>`;
@@ -89,7 +95,7 @@ export function setup(ctx) {
         } else if (func == findObj) {
             qty = obj.quantity;
         } else if (func == findDrop || func == findDropArray) {
-            qty = qtyDropTable(itemID, obj);
+            qty = qtyDropTable(itemID, obj, item);
         }
 
         if (item instanceof RandomTravelEvent) {
@@ -206,6 +212,12 @@ export function setup(ctx) {
                         if (findArray(itemID, poi.hidden.itemsWorn)) {
                             uses.push([game.cartography.name, showItem(poi)]);
                         }
+                    }
+                });
+
+                map.masteryBonuses.allObjects.forEach((bonus) => {
+                    if (findArrayObj(itemID, bonus.items)) {
+                        sources.push([game.cartography.name, appendQty(itemID, bonus, findArrayObj, bonus.items, 'gives')]);
                     }
                 });
             });
