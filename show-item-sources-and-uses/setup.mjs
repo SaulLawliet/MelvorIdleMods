@@ -15,7 +15,7 @@ export function setup(ctx) {
         return obj;
     }
 
-    const find = (itemID, obj) => itemID == obj.id;
+    const find = (itemID, obj) => typeof(obj) === 'object' && itemID == obj.id;
     const findObj = (itemID, obj) => obj && itemID == obj.item.id;
     const findArray = (itemID, array) => array.some((x) => x.id == itemID);
     const findArrayObj = (itemID, array) => array?.some((x) => x.item.id == itemID)
@@ -129,14 +129,13 @@ export function setup(ctx) {
             [game.agility.name, game.agility.pillars, {'itemCosts': findArrayObj}, {}],
             [game.agility.name, game.agility.elitePillars, {'itemCosts': findArrayObj}, {}],
 
-
             [game.smithing.name, game.smithing.actions, {'itemCosts': findArrayObj}, {'product': find}],
             [game.fletching.name, game.fletching.actions, {'alternativeCosts': findAlternativeCosts, 'itemCosts': findArrayObj}, {'product': find}],
             [game.crafting.name, game.crafting.actions, {'itemCosts': findArrayObj}, {'product': find}],
             [game.runecrafting.name, game.runecrafting.actions, {'itemCosts': findArrayObj}, {'product': find}],
             [game.herblore.name, game.herblore.actions, {'itemCosts': findArrayObj}, {'potions': findArray}],
             [game.summoning.name, game.summoning.actions, {'itemCosts': findArrayObj, 'nonShardItemCosts': findArray}, {'product': find}],
-            [game.altMagic.name, game.altMagic.actions, {'runesRequired': findArrayObj, 'runesRequiredAlt': findArrayObj}, {}],
+            [getLangString('PAGE_NAME_AltMagic'), game.altMagic.actions, {'runesRequired': findArrayObj, 'runesRequiredAlt': findArrayObj, 'fixedItemCosts': findArrayObj}, {'produces': find}],
         ];
         if (cloudManager.hasAoDEntitlement) {
             skillData.push([game.cartography.name, game.cartography.paperRecipes, {'costs.items': findArrayObj}, {'product': find}]);
