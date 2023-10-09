@@ -47,7 +47,11 @@ const createDescriptionsGroups = (careModifiersArray, skill) => {
                 if (modifierData[modifier].isNegative) {
                     value *= -1;
                 }
-                group.sum += value;
+                if (typeof value === 'number') {
+                    group.sum += value;
+                } else {
+                    group.sum += Number(eval(value));
+                }
                 descriptions.push([key, value]);
             });
             group.block.push(descriptions);

@@ -1534,12 +1534,16 @@ export async function setup(ctx) {
                     description = printPlayerModifier(modifier, value, shouldRoundModifier(modifier, value) ? 2 : 0);
                 }
                 descriptions.push(description);
-    
+
                 map.forEach((value, key) => {
                     if (modifierData[modifier].isNegative) {
                         value *= -1;
                     }
-                    group.sum += value;
+                    if (typeof value === 'number') {
+                        group.sum += value;
+                    } else {
+                        group.sum += Number(eval(value));
+                    }
                     descriptions.push([key, value]);
                 });
                 group.block.push(descriptions);
