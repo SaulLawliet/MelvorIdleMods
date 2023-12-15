@@ -413,7 +413,8 @@ export class ModifiersComeFrom {
         if (manager.fightInProgress) {
             const area = game.combat.selectedArea;
             const name = area ? area.name : 'unknown';
-            this.addModifiers(name, manager.playerAreaModifiers);
+            this.addModifiers(name, manager.playerAreaModifiers.skillModifiers);
+            this.addModifiers(name, manager.playerAreaModifiers.standardModifiers);
         }
     }
 
