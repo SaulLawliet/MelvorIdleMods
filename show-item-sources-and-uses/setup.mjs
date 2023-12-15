@@ -114,7 +114,7 @@ export function setup(ctx) {
         const skillData = [
             ['Skill(Rare Drop)', game.skills, {}, {'rareDrops': findArrayObj}],
             ['Item(Open)', game.items, {'keyItem': findObj}, {'dropTable': findDrop}],
-            ['Dungeon', game.dungeons, {}, {'rewards': findArray}],
+            ['Dungeon', game.dungeons, {}, {'rewards': findArray, 'oneTimeReward': find}],
             ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}],
             [game.township.name, game.township.tasks.tasks, {'goals.items': findArrayObj}, {'rewards.items': findArrayObj}],
             [game.farming.name, game.farming.actions, {'seedCost': findObj}, {'product': find}],
@@ -169,7 +169,7 @@ export function setup(ctx) {
 
         // monster
         game.monsters.allObjects.forEach((monster) => {
-            if ((monster.bones && monster.bones.item.id == itemID) || (!monster.isBoss && monster.lootTable && findDrop(itemID, monster.lootTable))) {
+            if ((monster.bones && monster.bones.item.id == itemID) || (monster.lootTable && findDrop(itemID, monster.lootTable))) {
                 sources.push(['Monster', appendQty(itemID, monster, findDrop, monster.lootTable, 'gives')]);
             }
         });
