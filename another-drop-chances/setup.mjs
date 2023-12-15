@@ -43,12 +43,7 @@ export function setup(ctx) {
 
     ctx.patch(ArtisanMenu, 'setProduct').after(function(returnValue, item, qty) {
         if (item && game.stats.itemFindCount(item) <= 0) {
-            const platform = isSteam() ? 'Steam' : isIOS() ? 'iOS' : isAndroid() ? 'Android' : 'Browser';
-            if (platform == 'Browser') {
-                this.productName.setHTML(`${this.productName.innerHTML}${undiscoveredMark(item)}`)
-            } else {
-                this.productName.textContent += ' (X)';
-            }
+            this.productName.textContent += ' (X)';
         }
     });
 
