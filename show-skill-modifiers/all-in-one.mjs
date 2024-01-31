@@ -1308,7 +1308,7 @@ export async function setup(ctx) {
             if (!show) {
                 if (localID === 'Combat') {
                     // const attackType = game.combat.player.attackType;
-                    show = x[1].tags.includes('combat') && x[1].description !== 'No description';
+                    show = x[1].tags.includes('combat') && x[1].description && x[1].description !== 'No description';
                     if (show) {
                         for (let skillName of nonCombatSkills) {
                             if (x[1].description.indexOf(skillName) >= 0) {
