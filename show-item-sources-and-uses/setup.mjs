@@ -178,11 +178,11 @@ export function setup(ctx) {
         game.bank.itemUpgrades.forEach((itemUpgrades, key) => {
             itemUpgrades.forEach((itemUpgrade) => {
                 if (itemUpgrade.upgradedItem.id == itemID) {
-                    sources.push(['Item(Upgrade)', showItem(key)]);
+                    sources.push([itemUpgrade.isDowngrade ? 'Item(Downgrade)' : 'Item(Upgrade)', showItem(key)]);
                 }
 
                 if (findArrayObj(itemID, itemUpgrade.itemCosts)) {
-                    uses.push(['Item(Upgrade)', appendQty(itemID, itemUpgrade.upgradedItem, findArrayObj, itemUpgrade.itemCosts, 'uses')]);
+                    uses.push([itemUpgrade.isDowngrade ? 'Item(Downgrade)' : 'Item(Upgrade)', appendQty(itemID, itemUpgrade.upgradedItem, findArrayObj, itemUpgrade.itemCosts, 'uses')]);
                 }
             });
         });
