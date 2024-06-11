@@ -5,13 +5,18 @@ export function setup({ patch }) {
         quantity = Math.min(quantity, timesSold);
         if (quantity <= 0) return;
 
+        if (item.sellsFor.currency._localID != 'GP') {
+            imageNotify(cdnMedia('assets/media/main/bank_header.svg'), 'For GP only.', 'danger');
+            return;
+        }
+
         let gpFromSale = game.stats.Items.get(item, ItemStats.GpFromSale);
         if (quantity !== timesSold) {
-            if (timesSold * item.sellsFor !== gpFromSale) {
+            if (timesSold * item.sellsFor.quantity !== gpFromSale) {
                 imageNotify(cdnMedia('assets/media/main/bank_header.svg'), 'Price error. You must undo all.', 'danger');
                 return;
             }
-            gpFromSale = quantity * item.sellsFor;
+            gpFromSale = quantity * item.sellsFor.quantity;
         }
 
         if (gpFromSale > 0 && !game.gp.canAfford(gpFromSale)) {
@@ -83,7 +88,7 @@ export function setup({ patch }) {
         });
     };
 
-    patch(BankItemSettingsMenu, 'initialize').after((returnValue, game) => {
+    patch(BankSidebarMenuElement, 'initialize').after((returnValue, game) => {
         const button = createElement('button', {
             className: 'btn btn-danger'
         });
@@ -95,7 +100,7 @@ export function setup({ patch }) {
         });
         div.appendChild(button);
 
-        const element =  bankSideBarMenu.settingsMenu.children[0];
+        const element = bankSideBarMenu.settingsMenu.children[0];
         element.insertBefore(div, element.children[3]);
     });
 
