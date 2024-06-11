@@ -87,8 +87,14 @@ export function setup(ctx) {
         return data;
     }
 
-    const appendQty = (itemID, item, func, obj, verb) => {
+    const appendQty = (itemID, item, func, obj, verb, itemExtra='') => {
         let desc = showItem(item);
+        if (itemExtra) {
+            if (item instanceof Stronghold) {
+                desc += `<span class="text-success">[${itemExtra}]</span>`
+            }
+        }
+
         let qty = undefined;
         if (func == findArrayObj) {
             qty = qtyArrayObj(itemID, obj);
@@ -104,6 +110,12 @@ export function setup(ctx) {
 
         if (qty) {
             if (qty < 0) qty = 0;
+
+            if (itemExtra) {
+                if (item instanceof Stronghold) {
+                    qty += ` (${item.tiers[itemExtra].rewards.chance}%)`;
+                }
+            }
             desc += ` ${verb} ${qty}`;
         }
         return desc;
@@ -127,7 +139,6 @@ export function setup(ctx) {
             [`${game.thieving.name}(Area)`, game.thieving.areas, {}, {'uniqueDrops': findArrayObj}],
             [game.agility.name, game.agility.actions, {'itemCosts': findArrayObj}, {}],
             [game.agility.name, game.agility.pillars, {'itemCosts': findArrayObj}, {}],
-            [game.agility.name, game.agility.elitePillars, {'itemCosts': findArrayObj}, {}],
 
             [game.smithing.name, game.smithing.actions, {'itemCosts': findArrayObj}, {'product': find}],
             [game.fletching.name, game.fletching.actions, {'alternativeCosts': findAlternativeCosts, 'itemCosts': findArrayObj}, {'product': find}],
@@ -173,6 +184,15 @@ export function setup(ctx) {
                 sources.push(['Monster', appendQty(itemID, monster, findDrop, monster.lootTable, 'gives')]);
             }
         });
+
+        // stronghold
+        game.strongholds.allObjects.forEach((stronghold) => {
+            Object.entries(stronghold.tiers).forEach((entry) => {
+                if (findArrayObj(itemID, entry[1].rewards.items)) {
+                    sources.push(['Stronghold', appendQty(itemID, stronghold, findArrayObj, entry[1].rewards.items, 'gives', entry[0])])
+                }
+            })
+        })
 
         // Item
         game.bank.itemUpgrades.forEach((itemUpgrades, key) => {
@@ -293,19 +313,24 @@ export function setup(ctx) {
         }
     });
 
-    ctx.patch(BankSideBarMenu, 'initialize').after(function(returnValue, game) {
+    ctx.patch(BankSidebarMenuElement, 'initialize').after(function(returnValue, game) {
         const img = createElement("img", {
             classList: ["skill-icon-xxs"],
             attributes: [["src", "https://cdn.melvor.net/core/v018/assets/media/main/question.svg"]],
         });
 
         const button = createElement('button', {
+            id: 'sources-and-uses',
             className: 'btn btn-sm btn-outline-secondary p-0 ml-2'
         });
         button.onclick = () => showList(game.bank.selectedBankItem.item.id);
         button.appendChild(img);
 
         bankSideBarMenu.selectedMenu.itemWikiLink.parentNode.append(button);
+
+        tippy('#sources-and-uses', {
+            content: 'Click to View',
+        });
     });
 
 }
