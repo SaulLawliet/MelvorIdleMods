@@ -52,17 +52,17 @@ export function setup(ctx) {
         o(item, quantity);
     });
 
-    // // add percent in spend mastery pool
-    // ctx.patch(SpendMasteryMenuItem, 'updateProgress').after(function(returnValue, skill, action, spendAmount) {
-    //     if (!generalSettings.get('show-percent')) {
-    //         return;
-    //     }
-    //     const progress = skill.getMasteryProgress(action);
-    //     if (progress.level < 99) {
-    //         const nextLevel = Math.min(progress.level + spendAmount, 99);
-    //         const xpRequired = exp.level_to_xp(nextLevel) - progress.xp + 1;
-    //         const percent = (100 * xpRequired / skill.baseMasteryPoolCap).toFixed(2);
-    //         this.xpRequired.textContent += ` (${percent}%)`
-    //     }
-    // });
+    // add percent in spend mastery pool
+    ctx.patch(SpendMasteryMenuItemElement, 'updateProgress').after(function(returnValue, skill, action, spendAmount) {
+        if (!generalSettings.get('show-percent')) {
+            return;
+        }
+        const progress = skill.getMasteryProgress(action);
+        if (progress.level < 99) {
+            const nextLevel = Math.min(progress.level + spendAmount, 99);
+            const xpRequired = exp.level_to_xp(nextLevel) - progress.xp + 1;
+            const percent = (100 * xpRequired / skill.getBaseMasteryPoolCap(action.realm)).toFixed(2);
+            this.xpRequired.textContent += ` (${percent}%)`
+        }
+    });
 }
