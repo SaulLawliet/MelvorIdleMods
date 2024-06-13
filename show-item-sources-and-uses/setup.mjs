@@ -54,7 +54,7 @@ export function setup(ctx) {
         let done = false;
         let data = item.name;
         if (item instanceof TownshipTask) {
-            data = item._name;
+            data = item._localID;
             done = game.township.tasks.completedTasks.has(item);
         } else if (item instanceof ShopPurchase) {
             done = game.shop.isUpgradePurchased(item);
@@ -124,11 +124,12 @@ export function setup(ctx) {
     const buildSkillData = () => {
         // No Astrology
         const skillData = [
+            // name, objects, uses, gives
             ['Skill(Rare Drop)', game.skills, {}, {'rareDrops': findArrayObj}],
             ['Item(Open)', game.items, {'keyItem': findObj}, {'dropTable': findDrop}],
             ['Dungeon', game.dungeons, {}, {'rewards': findArray, 'oneTimeReward': find}],
             ['Shop', game.shop.purchases, {'costs.items': findArrayObj}, {'contains.items': findArrayObj}],
-            [game.township.name, game.township.tasks.tasks, {'goals.items': findArrayObj}, {'rewards.items': findArrayObj}],
+            [`${game.township.name}(Task)`, game.township.tasks.tasks, {'goals.itemGoals': findArrayObj}, {'rewards.items': findArrayObj}],
             [game.farming.name, game.farming.actions, {'seedCost': findObj}, {'product': find}],
             [game.woodcutting.name, game.woodcutting.actions, {}, {'product': find}],
             [game.fishing.name, game.fishing.actions, {}, {'product': find}],
@@ -155,6 +156,13 @@ export function setup(ctx) {
             skillData.push([game.archaeology.name, game.archaeology.actions, {}, {'artefacts.ObjectValues()': findDropArray}]);
             skillData.push([game.archaeology.name, game.archaeology.museumRewards, {}, {'items': findArrayObj}]);
         }
+
+        if (cloudManager.hasItAEntitlement) {
+            skillData.push([getLangString('THE_ABYSS_ENTER_DEPTH'), game.abyssDepths, {}, {'rewards': findArray}]);
+
+            skillData.push([game.harvesting.name, game.harvesting.actions, {}, {'products': findArrayObj, 'uniqueProduct': findObj}]);
+        }
+
         return skillData;
     }
 
@@ -254,6 +262,8 @@ export function setup(ctx) {
 
         const item = game.items.getObjectByID(itemID);
 
+        let maybeBugCount = 0;
+
         let html = `<h5 class="font-w400 mb-1">${item.name} ${undiscoveredMark(item)}</h5>`;
         html += `<img src="${item.media}" style="width: 48px; height: 48px;"></img>`;
         html += '<p></p>';
@@ -267,6 +277,7 @@ export function setup(ctx) {
             html += '</table><br>'
         } else {
             html += '<h5 class="font-w600 font-size-sm mb-1">none</h5>';
+            maybeBugCount += 1;
         }
 
 
@@ -279,6 +290,11 @@ export function setup(ctx) {
             html += '</table><br>'
         } else {
             html += '<h5 class="font-w600 font-size-sm mb-1">none</h5>';
+            maybeBugCount += 1;
+        }
+
+        if (maybeBugCount == 2) {
+            html += `<br><span class="font-w600 font-size-sm text-warning">No sources and uses.<br>Doesn't look right.<br>If you know what I'm missing.<br>Please report bugs if you like, thx.</span>`;
         }
 
         if (backFunction) {
