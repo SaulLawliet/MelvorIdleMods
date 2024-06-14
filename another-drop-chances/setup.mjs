@@ -1,7 +1,7 @@
 export function setup(ctx) {
 
     const undiscoveredMark = (item) => {
-        return game.stats.itemFindCount(item) > 0 ? '' : ' <small style="color: red;">X</small>';
+        return game.stats.itemFindCount(item) > 0 ? '' : ' ❌';
     }
 
     ctx.onInterfaceReady(async (ctx) => {
@@ -19,13 +19,13 @@ export function setup(ctx) {
         });
 
         // Thieving
-        const showNPCDropsString = thievingMenu.showNPCDrops.toString()
+        const showNPCDropsString = game.thieving.fireNPCDropsModal.toString()
                 .replace(/^[^{]*{/, '')
                 .replace(/}$/, '')
                 .replaceAll("DEBUGENABLED", "true")
                 .replace('return text;', 'return `${text}${undiscoveredMark(item)}`;');
 
-        ctx.patch(ThievingMenu, "showNPCDrops").replace(function (o, npc, area) {
+        ctx.patch(Thieving, "fireNPCDropsModal").replace(function (o, area, npc) {
             eval(showNPCDropsString);
         });
 
@@ -37,18 +37,17 @@ export function setup(ctx) {
     });
 
     ctx.patch(Bank, 'fireItemUpgradeModal').after(function(returnValue, upgrade, rootItem) {
-        // $('#item-view-name-upgrade').html(`${upgrade.upgradedItem.name}${undiscoveredMark(upgrade.upgradedItem)}`);
         itemUpgradeMenu.itemName.innerHTML += undiscoveredMark(upgrade.upgradedItem);
     });
 
-    ctx.patch(ArtisanMenu, 'setProduct').after(function(returnValue, item, qty) {
+    ctx.patch(ArtisanMenuElement, 'setProduct').after(function(returnValue, item, qty) {
         if (item && game.stats.itemFindCount(item) <= 0) {
-            this.productName.textContent += ' (X)';
+            this.productName.textContent += ' ❌';
         }
     });
 
     // archaeology
-    ctx.patch(ArtefactDropList, 'setList').replace(function(o, digSite) {
+    ctx.patch(ArtefactDropListElement, 'setList').replace(function(o, digSite) {
         const formatWeight = (weight, totalWeight) => {
             return ` (${(100*weight/totalWeight).toFixed(2)}%)`;
         }
@@ -85,15 +84,15 @@ export function setup(ctx) {
             }
         );
 
-        const createAverageValue = (parent, dropTable) => {
-            const el = createElement("span");
-            el.innerHTML = `Average Value: ${dropTable.averageDropValue.toFixed(2)} GP`;
-            parent.appendChild(el);
-        }
+        // const createAverageValue = (parent, dropTable) => {
+        //     const el = createElement("span");
+        //     el.innerHTML = `Average Value: ${dropTable.averageDropValue.toFixed(2)} GP`;
+        //     parent.appendChild(el);
+        // }
 
-        createAverageValue(this.artefactsTiny, digSite.artefacts.tiny);
-        createAverageValue(this.artefactsSmall, digSite.artefacts.small);
-        createAverageValue(this.artefactsMedium, digSite.artefacts.medium);
-        createAverageValue(this.artefactsLarge, digSite.artefacts.large);
+        // createAverageValue(this.artefactsTiny, digSite.artefacts.tiny);
+        // createAverageValue(this.artefactsSmall, digSite.artefacts.small);
+        // createAverageValue(this.artefactsMedium, digSite.artefacts.medium);
+        // createAverageValue(this.artefactsLarge, digSite.artefacts.large);
     });
 }
