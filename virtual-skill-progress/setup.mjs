@@ -16,35 +16,38 @@ export function setup(ctx) {
         default: true
     });
 
-
-    ctx.patch(SkillProgressDisplay, 'updateXP').replace(function (o, skill) {
-        if (!generalSettings.get('skill-progress')) {
-            o(skill);
-            return;
+    ctx.patch(SkillHeaderElement, "updateXP").replace(function (o, game, skill) {
+        if (!generalSettings.get("skill-progress")) {
+          o(skill);
+          return;
         }
-        const skillElems = this.getSkillElements(skill);
+
         const xp = skill.xp;
         const level = skill.virtualLevel;
-        const xpText = `${numberWithCommas(Math.floor(xp))} / ${numberWithCommas(exp.level_to_xp(level+1))}`;
+        this.skillXp.textContent = `${numberWithCommas(Math.floor(xp))} / ${numberWithCommas(exp.levelToXP(level + 1))}`;
 
         const currentLevelXP = exp.level_to_xp(level);
         const nextLevelXP = exp.level_to_xp(level + 1);
         const progress = (100 * (xp - currentLevelXP)) / (nextLevelXP - currentLevelXP);
-
-        skillElems.percent.forEach((elem) => (elem.textContent = formatPercent(Math.floor(progress))));
-        skillElems.xp.forEach((elem) => (elem.textContent = xpText));
-        skillElems.progress.forEach((elem) => (elem.style.width = `${progress}%`));
-        skillElems.tooltip.forEach((elem) => elem.setContent(this.createTooltipHTML(skill)));
+        this.skillProgressBar.style.width = `${progress}%`;
     });
 
-    ctx.patch(SkillProgressDisplay, 'updateLevel').replace(function (o, skill) {
-        if (!generalSettings.get('skill-progress')) {
+    ctx.patch(SkillHeaderElement, "updateAbyssalXP").replace(function (o, game, skill) {
+        if (!generalSettings.get("skill-progress")) {
             o(skill);
             return;
         }
-        const skillElems = this.getSkillElements(skill);
-        skillElems.level.forEach((elem) => (elem.textContent = `${skill.virtualLevel} / ${skill.levelCap}`));
+
+        const xp = skill.abyssalXP;
+        const level = skill.virtualAbyssalLevel;
+        this.abyssalXp.textContent = `${numberWithCommas(Math.floor(xp))} / ${numberWithCommas(abyssalExp.levelToXP(level + 1))}`;
+
+        const currentLevelXP = abyssalExp.levelToXP(level);
+        const nextLevelXP = abyssalExp.levelToXP(level + 1);
+        const progress = (100 * (xp - currentLevelXP)) / (nextLevelXP - currentLevelXP);
+        this.abyssalProgressBar.style.width = `${progress}%`;
     });
+
 
     ctx.patch(SkillWithMastery, 'getMasteryProgress').replace(function (o, action) {
         if (!generalSettings.get('mastery-progress')) {
@@ -65,14 +68,14 @@ export function setup(ctx) {
         };
     });
 
-    ctx.patch(MasteryDisplay, 'updateValues').after(function (returnValue, progress) {
+    ctx.patch(MasteryDisplayElement, 'updateValues').after(function (returnValue, progress) {
         if (!generalSettings.get('mastery-progress')) {
             return;
         }
         this.xpProgress.textContent = `${numberWithCommas(Math.floor(progress.xp))} / ${numberWithCommas(progress.nextLevelXP)}`;
     });
 
-    ctx.patch(SpendMasteryMenuItem, 'updateProgress').after(function(returnValue, skill, action, spendAmount) {
+    ctx.patch(SpendMasteryMenuItemElement, 'updateProgress').after(function(returnValue, skill, action, spendAmount) {
         if (!generalSettings.get('mastery-progress')) {
             return;
         }
