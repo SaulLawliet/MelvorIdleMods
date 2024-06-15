@@ -1,8 +1,11 @@
 export function setup(ctx) {
 
     const calcPrice = (altRecipe) => {
-        let shopPrice = 0;
-        let itemPrice = 0;
+        let shopGP = 0;
+        let itemGP = 0;
+        let shopAP = 0;
+        let itemAP = 0;
+
         let qtyStr = '';
         altRecipe.items.forEach(({
             item,
@@ -10,21 +13,42 @@ export function setup(ctx) {
         }) => {
             const purchase = game.shop.getQuickBuyPurchase(item);
             if (purchase) {
-                shopPrice += purchase.costs.gp.cost * quantity; // must be gp?
+                purchase.costs.currencies.forEach((currency) => {
+                    if (currency.currency.localID == 'GP') {
+                        shopGP += currency.cost * quantity
+                    } else if (currency.currency.localID == 'AbyssalPieces') {
+                        shopAP += currency.cost * quantity
+                    }
+                })
             } else {
-                itemPrice += item.sellsFor * quantity;
+                if (item.sellsFor.currency.localID == 'GP') {
+                    itemGP += item.sellsFor.quantity * quantity;
+                } else if (item.sellsFor.currency.localID == 'AbyssalPieces') {
+                    itemAP += item.sellsFor.quantity * quantity;
+                }
                 if (qtyStr.length > 0) qtyStr += ' | ';
                 qtyStr += `${numberWithCommas(game.bank.getQty(item))} Qty`
             }
         });
+
         let ret = ''
-        if (shopPrice > 0 && itemPrice == 0) {
-            ret = `${numberWithCommas(shopPrice)} GP`;
+        if (shopGP > 0 && itemGP == 0) {
+            ret = `${numberWithCommas(shopGP)} GP`;
         }
-        if (itemPrice > 0) {
+        if (itemGP > 0) {
             if (ret.length > 0) ret += ' | ';
-            ret += `${numberWithCommas(itemPrice)} GP`;
+            ret += `${numberWithCommas(itemGP)} GP`;
         }
+
+        if (shopAP > 0 && itemAP == 0) {
+            if (ret.length > 0) ret += ' | ';
+            ret += `${numberWithCommas(shopAP)} AP`;
+        }
+        if (itemAP > 0) {
+            if (ret.length > 0) ret += ' | ';
+            ret += `${numberWithCommas(itemAP)} AP`;
+        }
+
         if (qtyStr.length > 0) {
             if (ret.length > 0) ret += ' # ';
             ret += qtyStr;
@@ -32,50 +56,43 @@ export function setup(ctx) {
         return ret;
     }
 
-    ctx.patch(ArtisanMenu, "setRecipeDropdown").after(function (returnValue, altRecipeIngredients, selectCallback, displayOrder) {
-        this.recipeDropdown.optionsContainer.children.forEach((a, i) => {
-            const div = a.getElementsByClassName('gutters-tiny')[0];
+    ctx.patch(ArtisanMenuElement, "setRecipeDropdown").after(function (returnValue, altRecipeIngredients, selectCallback, displayOrder) {
+        this.recipeDropdownItems.forEach((item, i) => {
             const span = document.createElement('span');
             span.style.cssText = "display: flex; align-items: center;";
             span.innerText = calcPrice(altRecipeIngredients[i]);
-            div.appendChild(span);
+            item.appendChild(span);
         });
     });
 
     // Show Agility Cost Item
-    ctx.patch(AgilityObstacleSelection, 'setCosts').replace(function (o, items, gpReq, scReq) {
-        this.costContainer.textContent = '';
+    ctx.patch(AgilityObstacleSelectionElement, 'setCosts').replace(function (o, items, currencies) {
+        this.costContainer.textContent = "";
         const addReq = (media, qty, name, currentQty, item=null) => {
-            const newReq = this.createInlineRequirement(currentQty >= qty ? 'text-success' : 'text-danger');
-            this.costContainer.append(newReq);
-            if (item) {
-                newReq.setContent(media, `${numberWithCommas(currentQty)} / ${formatNumber(qty)}`, name);
-            } else {
-                newReq.setContent(media, formatNumber(qty), name);
-            }
+          const newReq = this.createInlineRequirement(currentQty >= qty ? "text-success" : "text-danger");
+          this.costContainer.append(newReq);
+          if (item) {
+            newReq.setContent(media, `${numberWithCommas(currentQty)} / ${formatNumber(qty)}`, name);
+          } else {
+            newReq.setContent(media, formatNumber(qty), name);
+          }
         };
-        items.forEach(({
-            item,
-            quantity
-        }) => {
-            addReq(item.media, quantity, item.name, game.bank.getQty(item), item);
+        items.forEach(({ item, quantity }) => {
+          addReq(item.media, quantity, item.name, game.bank.getQty(item), item);
         });
-        if (gpReq > 0) {
-            addReq(cdnMedia('assets/media/main/coins.svg'), gpReq, getLangString('MENU_TEXT_GP'), game.gp.amount);
-        }
-        if (scReq > 0) {
-            addReq(cdnMedia('assets/media/main/slayer_coins.svg'), scReq, getLangString('MENU_TEXT_SLAYER_COINS'), game.slayerCoins.amount);
-        }
+        currencies.forEach(({ currency, quantity }) => {
+          addReq(currency.media, quantity, currency.name, currency.amount);
+        });
     });
 
     // Show Food Item CP in Bank
-    ctx.patch(BankSelectedItemMenu, 'setItem').after(function(returnValue, bankItem, bank) {
+    ctx.patch(BankSelectedItemMenuElement, 'setItem').after(function(returnValue, bankItem, bank) {
         const item = bankItem.item;
         if (item instanceof FoodItem) {
             let hpValue = game.combat.player.getFoodHealing(item);
-            this.itemHealing.innerHTML += `<br><br>Current: ${item.sellsFor} / ${hpValue} = <span class="text-bank-desc">${(item.sellsFor/hpValue).toFixed(2)}</span>`;
+            this.itemHealing.innerHTML += `<br><br>Current: ${item.sellsFor.quantity} / ${hpValue} = <span class="text-bank-desc">${(item.sellsFor.quantity/hpValue).toFixed(2)}</span>`;
             hpValue = (item.healsFor * numberMultiplier).toFixed(0);
-            this.itemHealing.innerHTML += `<br><br>Base: ${item.sellsFor} / ${hpValue} = <span class="text-bank-desc">${(item.sellsFor/hpValue).toFixed(2)}</span>`;
+            this.itemHealing.innerHTML += `<br><br>Base: ${item.sellsFor.quantity} / ${hpValue} = <span class="text-bank-desc">${(item.sellsFor.quantity/hpValue).toFixed(2)}</span>`;
         }
     });
 }
