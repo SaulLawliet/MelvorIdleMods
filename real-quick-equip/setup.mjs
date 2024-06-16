@@ -25,22 +25,6 @@ export function setup(ctx) {
     });
 
     generalSettings.add({
-        type: "switch",
-        name: "old-style",
-        label: "Click Equipment Image to unequip. Remove Select Equipment Tooltip ",
-        hint: "Doesn't work in mobile (Need to reload the game).",
-        default: false
-    });
-
-    generalSettings.add({
-        type: 'switch',
-        name: 'auto-remove',
-        label: 'Auto Remove? (Default: false)',
-        hint: 'Remove from Quick-Equip, If item not in bank.(Emergency use)',
-        default: false
-    });
-
-    generalSettings.add({
         type: 'switch',
         name: 'half-mark',
         label: 'Quick Equip Synergy Uses Half of the Marks',
@@ -69,59 +53,31 @@ export function setup(ctx) {
         return false;
     }
 
-    const removeFromQuickEquip = (skill) => {
-        const items = game.minibar.getCustomItemsForSkill(skill);
-
-        const names = [];
-        items.filter((x) => game.stats.itemFindCount(x) > 0).forEach((item) => {
-            if (!findItem(item)) {
-                names.push(item.name);
-                game.minibar.toggleCustomItem(skill, item);
-            }
-        });
-        if (names.length > 0) {
-            notifyPlayer(skill, `Removed: ${names.join(' / ')}`, "success");
-            game.minibar.setSkill(skill);
-        } else {
-            notifyPlayer(skill, `Nothing to remove. You can turn it off in the Mod Settings.`, "danger");
-        }
-    }
-
-    // change from: Player.quickEquipItem(item, skill)
-    const quickEquipItem = (item, skill, slot) => {
+    // copy from Player, for Summon2
+    const quickEquipItem = (item, skill, slotID) => {
         let quantity = game.combat.player.manager.bank.getQty(item);
-        const templateData = {
-            itemName: item.name,
-            quantity: `${quantity}`
-        };
+        const templateData = { itemName: item.name, quantity: `${quantity}` };
         if (quantity > 0) {
-            if (!equipmentSlotData[item.validSlots[0]].allowQuantity)
-                quantity = 1;
-            game.combat.player.equipItem(item, game.combat.player.selectedEquipmentSet, slot, quantity);
+            const slot = item.validSlots[0];
+            if (!slot.allowQuantity) quantity = 1;
+            game.combat.player.equipItem(item, game.combat.player.selectedEquipmentSet, game.equipmentSlots.getObjectByID(slotID), quantity);
             if (game.combat.player.equipment.checkForItem(item)) {
-                if (quantity > 1) {
-                    notifyPlayer(skill, templateLangString('TOASTS_ITEM_QTY_EQUIPPED', templateData), 'success');
-                } else {
-                    notifyPlayer(skill, templateLangString('TOASTS_ITEM_EQUIPPED', templateData), 'success');
-                }
-            } else
-                notifyPlayer(skill, templateLangString('TOASTS_CANT_EQUIP_ITEM', templateData), 'danger');
+            if (quantity > 1) {
+                notifyPlayer(skill, templateLangString("TOASTS_ITEM_QTY_EQUIPPED", templateData), "success");
+            } else {
+                notifyPlayer(skill, templateLangString("TOASTS_ITEM_EQUIPPED", templateData), "success");
+            }
+            } else notifyPlayer(skill, templateLangString("TOASTS_CANT_EQUIP_ITEM", templateData), "danger");
         } else if (game.combat.player.equipment.checkForItem(item))
-            notifyPlayer(skill, templateLangString('TOASTS_ITEM_ALREADY_EQUIPPED', templateData), 'info');
-        else
-            notifyPlayer(skill, templateLangString('TOASTS_ITEM_NOT_IN_BANK', templateData), 'danger');
-    }
+            notifyPlayer(skill, templateLangString("TOASTS_ITEM_ALREADY_EQUIPPED", templateData), "info");
+        else notifyPlayer(skill, templateLangString("TOASTS_ITEM_NOT_IN_BANK", templateData), "danger");
+    };
 
     const quickEquip = () => {
         const skill = game.minibar.activeSkill;
 
         if (game.activeAction == game.combat) {
             notifyPlayer(skill, `You are in battle.`, "danger");
-            return;
-        }
-
-        if (generalSettings.get('auto-remove')) {
-            removeFromQuickEquip(skill);
             return;
         }
 
@@ -132,13 +88,15 @@ export function setup(ctx) {
         const equipment = {};
         const passive = [];
 
+        const passiveSlot = game.equipmentSlots.getObjectByID("melvorD:Passive");
+
         const items = game.minibar.getCustomItemsForSkill(skill);
 
         items.filter((x) => game.stats.itemFindCount(x) > 0).forEach((item) => {
             const itemID = item.id;
             itemMap[itemID] = item;
 
-            const slot = item.validSlots[0];
+            const slot = item.validSlots[0].id;
             if (equipment[slot]) {
                 equipment[slot].push(itemID);
             } else {
@@ -152,13 +110,13 @@ export function setup(ctx) {
                     equipment[occupiesSlot] = [itemID];
                 }
             }
-            if (item.validSlots.includes('Passive')) {
+            if (item.validSlots.includes(passiveSlot)) {
                 passive.push(itemID);
             }
         });
 
         // 尝试计算被动格
-        if (passive.length > 0 && game.combat.player.isEquipmentSlotUnlocked('Passive')) {
+        if (passive.length > 0 && game.combat.player.isEquipmentSlotUnlocked(passiveSlot)) {
             // 移除不冲突的物品
             Object.values(equipment).forEach((itemIDs) => {
                 if (itemIDs.length == 1 && passive.includes(itemIDs[0])) {
@@ -178,7 +136,7 @@ export function setup(ctx) {
 
             if (passive.length > 0) {
                 if (passive.length == 1) {
-                    equipment['Passive'] = [passive[0]];
+                    equipment['melvorD:Passive'] = [passive[0]];
                 } else {
                     notifyPlayer(skill, `${templateLangString('EQUIP_SLOT_11')} conflict: ${passive.map((x) => itemMap[x].name).join(' / ')}`, "danger");
                     return;
@@ -186,18 +144,18 @@ export function setup(ctx) {
             }
 
             // 如果被动格只有一个, 删掉这个物品从其他的格子中
-            if (equipment['Passive']) {
+            if (equipment['melvorD:Passive']) {
                 Object.values(equipment).forEach((itemIDs) => {
                     if (itemIDs.length > 1) {
-                        arrayRemove(itemIDs, equipment['Passive'][0]);
+                        arrayRemove(itemIDs, equipment['melvorD:Passive'][0]);
                     }
                 });
             }
         }
 
-        if (equipment['Summon1'] && equipment['Summon1'].length == 2) {
+        if (equipment['melvorD:Summon1'] && equipment['melvorD:Summon1'].length == 2) {
             // 如果有两个, 那么一边放一个, 不需要关心顺序
-            equipment['Summon2'] = [equipment['Summon1'].pop()];
+            equipment['melvorD:Summon2'] = [equipment['melvorD:Summon1'].pop()];
         }
 
         // console.log(equipment);
@@ -206,9 +164,9 @@ export function setup(ctx) {
             if (itemIDs.length == 1) {
                 const item = itemMap[itemIDs[0]];
                 if (item.occupiesSlots.length == 0 || slot != item.occupiesSlots[0]) {
-                    const oldSlot = game.combat.player.equipment.slotMap.get(item);
+                    const oldSlot = game.combat.player.equipment.itemSlotMap.get(item);
                     if (oldSlot) {
-                        if (oldSlot != slot) {
+                        if (oldSlot.id != slot) {
                             // 位置不一样先脱再穿
                             if (game.combat.player.unequipCallback(oldSlot)()) {
                                 quickEquipItem(item, skill, slot);
@@ -224,15 +182,18 @@ export function setup(ctx) {
         });
 
         if (skill.id !== 'melvorD:Township') {
+            const summon1Slot = game.equipmentSlots.getObjectByID("melvorD:Summon1");
+            const summon2Slot = game.equipmentSlots.getObjectByID("melvorD:Summon2");
+
             // 如果没有配置, 那么自动脱掉板子
-            if (!equipment['Summon1'] || equipment['Summon1'].length > 1) {
-                if (game.combat.player.equipment.slots['Summon1'].quantity > 0) {
-                    game.combat.player.unequipCallback('Summon1')();
+            if (!equipment['melvorD:Summon1'] || equipment['melvorD:Summon1'].length > 1) {
+                if (game.combat.player.equipment.equippedItems['melvorD:Summon1'].quantity > 0) {
+                    game.combat.player.unequipCallback(summon1Slot)();
                 }
             }
-            if (!equipment['Summon2']) {
-                if (game.combat.player.equipment.slots['Summon2'].quantity > 0) {
-                    game.combat.player.unequipCallback('Summon2')();
+            if (!equipment['melvorD:Summon2']) {
+                if (game.combat.player.equipment.equippedItems['melvorD:Summon2'].quantity > 0) {
+                    game.combat.player.unequipCallback(summon2Slot)();
                 }
             }
         }
@@ -263,28 +224,11 @@ export function setup(ctx) {
                 button.children[0].src = generalSettings.get('custom-icon');
             }
         }
-
-        // Click Equipment Image to unequip. (Old Style)
-        if (generalSettings.get('old-style') && !nativeManager.isMobile) {
-            Object.entries(equipmentSlotData).forEach((entry, id) => {
-                entry[1].imageElements = getEquipmentImageElements(entry[1].id);
-                entry[1].imageElements.map((imageElem) => {
-                    if (imageElem._tippy) {
-                        imageElem._tippy.destroy();
-                        imageElem.addEventListener("click", function() {
-                            if (game.combat.player.equipment.slotArray[id].quantity > 0) {
-                                game.combat.player.unequipCallback(Object.keys(equipmentSlotData)[id])();
-                            }
-                        });
-                    }
-                });
-            });
-        }
     });
 
     const equipAmmo = () => {
         const player = game.combat.player;
-        const ammoType = player.equipment.slots.Weapon.item.ammoTypeRequired;
+        const ammoType = player.equipment.equippedItems["melvorD:Weapon"].item.ammoTypeRequired;
 
         const items = game.bank.filterItems((bankItem) => {
             if (bankItem.locked) return false;
@@ -294,7 +238,7 @@ export function setup(ctx) {
         if (items.length > 0) {
             items.sort((a, b) => b.equipmentStats[0].value - a.equipmentStats[0].value);
             const set = player.equipmentSets.findIndex((x) => x.equipment === player.equipment)
-            player.equipItem(items[0], set, 'Quiver', Infinity);
+            player.equipItem(items[0], set, game.equipmentSlots.getObjectByID('melvorD:Quiver'), Infinity);
         }
     };
 
@@ -313,5 +257,4 @@ export function setup(ctx) {
         }
         eval(quickEquipSynergyString);
     });
-
 }
