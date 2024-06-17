@@ -70,6 +70,11 @@ export function setup(ctx) {
         } else if (item instanceof WorldMapMasteryBonus) {
             data = `${getLangString('HEX_MASTERY')} ${item.localID}`;
             done = item.awarded;
+        } else if (item instanceof BasicSkillRecipe) {
+            if (item.skill instanceof SkillWithMastery) {
+                const masteryLevel = item.skill.getMasteryLevel(item)
+                data += ` (Lv.${masteryLevel})`;
+            }
         }
 
         if (item.media) {
@@ -149,7 +154,7 @@ export function setup(ctx) {
             [game.summoning.name, game.summoning.actions, {'itemCosts': findArrayObj, 'nonShardItemCosts': findArray}, {'product': find}],
             [getLangString('PAGE_NAME_AltMagic'), game.altMagic.actions, {'runesRequired': findArrayObj, 'runesRequiredAlt': findArrayObj, 'fixedItemCosts': findArrayObj}, {'produces': find}],
         ];
-        if (cloudManager.hasAoDEntitlement) {
+        if (cloudManager.hasAoDEntitlementAndIsEnabled) {
             skillData.push([game.cartography.name, game.cartography.paperRecipes, {'costs.items': findArrayObj}, {'product': find}]);
             skillData.push([game.cartography.name, game.cartography.travelEventRegistry, {}, {'rewards.items': findArrayObj}]);
 
@@ -157,7 +162,7 @@ export function setup(ctx) {
             skillData.push([game.archaeology.name, game.archaeology.museumRewards, {}, {'items': findArrayObj}]);
         }
 
-        if (cloudManager.hasItAEntitlement) {
+        if (cloudManager.hasItAEntitlementAndIsEnabled) {
             skillData.push([getLangString('THE_ABYSS_ENTER_DEPTH'), game.abyssDepths, {}, {'rewards': findArray}]);
 
             skillData.push([game.harvesting.name, game.harvesting.actions, {}, {'products': findArrayObj, 'uniqueProduct': findObj}]);
@@ -227,7 +232,7 @@ export function setup(ctx) {
             sources.push([game.thieving.name, "Most NPC"]);
         }
 
-        if (cloudManager.hasAoDEntitlement) {
+        if (cloudManager.hasAoDEntitlementAndIsEnabled) {
             // Cartography
             game.cartography.worldMaps.allObjects.forEach((map) => {
                 map.pointsOfInterest.allObjects.forEach((poi) => {
@@ -257,6 +262,15 @@ export function setup(ctx) {
         return game.stats.itemFindCount(item) > 0 ? '' : ' <small style="color: red;">X</small>';
     }
 
+    const textClass = (data) => {
+        if (data.startsWith('<del>')) {
+            return 'text-warning'
+        } else if (data.indexOf('Lv.99') >= 0) {
+            return 'text-success'
+        }
+        return ''
+    }
+
     const showList = (itemID, backFunction, ...backArgs) => {
         let { sources, uses } = calcList(itemID);
 
@@ -272,7 +286,7 @@ export function setup(ctx) {
         if (sources.length > 0) {
             html += '<table class="font-w400 font-size-sm mb-1" style="margin: auto; border-collapse: unset;">';
             sources.forEach((line) => {
-                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td class="${line[1].startsWith('<del>') ? 'text-warning' : ''}">${line[1]}</td></tr>`;
+                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td class="${textClass(line[1])}">${line[1]}</td></tr>`;
             })
             html += '</table><br>'
         } else {
@@ -285,7 +299,7 @@ export function setup(ctx) {
         if (uses.length > 0) {
             html += '<table class="font-w400 font-size-sm mb-1" style="margin: auto; border-collapse: unset;">';
             uses.forEach((line) => {
-                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td class="${line[1].startsWith('<del>') ? 'text-warning' : ''}">${line[1]}</td></tr>`;
+                html += `<tr style="text-align: left;"><td class="text-info">${line[0]}: </td><td class="${textClass(line[1])}">${line[1]}</td></tr>`;
             })
             html += '</table><br>'
         } else {
