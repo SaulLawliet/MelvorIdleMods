@@ -232,6 +232,13 @@ export function setup(ctx) {
             sources.push([game.thieving.name, "Most NPC"]);
         }
 
+        // Fishing
+        game.fishing.specialItemTables.forEach((drop, realm) => {
+            if (findDrop(itemID, drop)) {
+                sources.push([`${game.fishing.name}(Special)`, appendQty(itemID, realm, findDrop, drop, 'gives')]);
+            }
+        })
+
         if (cloudManager.hasAoDEntitlementAndIsEnabled) {
             // Cartography
             game.cartography.worldMaps.allObjects.forEach((map) => {
