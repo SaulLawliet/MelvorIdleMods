@@ -1,5 +1,5 @@
 {
 	"namespace": "ShowSkillModifiers",
 	"icon": "icon.png",
-	"setup": "all-in-one.mjs"
+	"setup": "setup.mjs"
 }
