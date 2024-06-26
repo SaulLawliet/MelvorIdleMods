@@ -1,38 +1,51 @@
 export function setup({ patch }) {
 
+    // Currency Stat
+    // 0: add
+    // 1: remove
+    // 2: combat get
+    // 
+
+
     const process = (item, quantity = Number.MAX_VALUE) => {
         const timesSold = game.stats.Items.get(item, ItemStats.TimesSold);
         quantity = Math.min(quantity, timesSold);
         if (quantity <= 0) return;
 
-        if (item.sellsFor.currency._localID != 'GP') {
-            imageNotify(cdnMedia('assets/media/main/bank_header.svg'), 'For GP only.', 'danger');
-            return;
-        }
+        const sellsFor = item.sellsFor
+        const isGP = sellsFor.currency == game.gp
 
-        let gpFromSale = game.stats.Items.get(item, ItemStats.GpFromSale);
-        if (quantity !== timesSold) {
-            if (timesSold * item.sellsFor.quantity !== gpFromSale) {
-                imageNotify(cdnMedia('assets/media/main/bank_header.svg'), 'Price error. You must undo all.', 'danger');
-                return;
+        let price = quantity * sellsFor.quantity;
+        if (isGP) {
+            let gpFromSale = game.stats.Items.get(item, ItemStats.GpFromSale);
+            if (quantity !== timesSold) {
+                if (timesSold * sellsFor.quantity !== gpFromSale) {
+                    imageNotify(cdnMedia('assets/media/main/bank_header.svg'), 'Price error. You must undo all.', 'danger');
+                    return;
+                }
+                gpFromSale = quantity * sellsFor.quantity;
             }
-            gpFromSale = quantity * item.sellsFor.quantity;
+            price = gpFromSale
         }
 
-        if (gpFromSale > 0 && !game.gp.canAfford(gpFromSale)) {
+        if (price > 0 && !sellsFor.currency.canAfford(price)) {
             imageNotify(cdnMedia('assets/media/main/bank_header.svg'), 'You can not afford this.', 'danger');
             return;
         }
 
-        // 1. 加物品, 删统计
+        // 1. Add item, Delete stats
         if (game.bank.addItem(item, quantity, false, false)) {
             game.stats.Items.add(item, ItemStats.TimesSold, -quantity);
-            game.stats.Items.add(item, ItemStats.GpFromSale, -gpFromSale);
+            if (isGP) {
+                game.stats.Items.add(item, ItemStats.GpFromSale, -price);
+            }
 
-            // 2. 扣钱, 删统计
-            if (gpFromSale > 0) {
-                game.gp.remove(gpFromSale);
-                game.stats.General.add(GeneralStats.TotalGPEarned, -gpFromSale);
+            // 2. remove money, delete stats
+            if (price > 0) {
+                sellsFor.currency.remove(price)
+                if (isGP) {
+                    game.stats.General.add(GeneralStats.TotalGPEarned, -price);
+                }
                 game.stats.General.add(GeneralStats.TotalItemsSold, -quantity);
             }
 
@@ -47,15 +60,18 @@ export function setup({ patch }) {
             fireBottomToast('item not found.')
             return;
         }
-        const quantity = game.stats.Items.get(item, ItemStats.TimesSold);
-        const salePrice = game.stats.Items.get(item, ItemStats.GpFromSale);
+        const sellsFor = item.sellsFor
+        const isGP = sellsFor.currency == game.gp
 
-        const mustAll = item.type === 'Logs';
+        const quantity = game.stats.Items.get(item, ItemStats.TimesSold);
+        let salePrice = isGP ? game.stats.Items.get(item, ItemStats.GpFromSale) : sellsFor.quantity * quantity;
+
+        const mustAll = isGP && item.type === 'Logs';
         const arg = {
             title: "Undo Sell Item?",
             html: `<span class='text-dark'>
             Receive ${numberWithCommas(quantity)} x ${item.name}<br>
-            Send back <img class='skill-icon-xs mr-2' src='${cdnMedia("assets/media/main/coins.svg")}'>${numberWithCommas(salePrice)}
+            Send back <img class='skill-icon-xs mr-2' src='${sellsFor.currency.media}'>${numberWithCommas(salePrice)}
             </span>`,
             imageUrl: item.media,
             imageWidth: 64,
