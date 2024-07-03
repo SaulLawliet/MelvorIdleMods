@@ -1,7 +1,8 @@
 const ctx = mod.getContext(import.meta);
 const generalSettings = ctx.settings.section("General");
 
-const globalQueryKey = "--------";
+// const generalSettings = new Map()
+
 const queryCache = new Map();
 
 const showSkillModifiers = () => {
@@ -19,20 +20,24 @@ const showSkillModifiers = () => {
   var groups = [];
 
   if (skill) {
+    groups.push(makeCharge(skill, localID));
+
     groups.push(makeXP(skill, localID));
     groups.push(makeMasteryXP(skill, localID));
     groups.push(makeDouble(skill, localID));
+    groups.push(makeAdditionalItems(skill, localID));
     groups.push(makeInterval(skill, localID));
     groups.push(makePreservation(skill, localID));
+    groups.push(makeCurrency(skill, localID))
   }
-  groups.push(makePotionAndSummon(skill, localID));
 
   groups.push(makeOthers(skill, localID));
 
   viewModifiers(game.openPage.name, skill, groups);
 };
 
-function showSources(text, isNegative, isDisabled, backFunction = undefined) {
+const showSources = (text, isNegative, isDisabled, backFunction = undefined) => {
+  text = decodeURIComponent(text)
   const description = { text, isNegative, isDisabled };
   const entries = queryCache.get(text);
   let html = getElementHTMLDescriptionFormatter("h5", "font-w400 font-size-sm mb-1", false)(description);
@@ -70,7 +75,7 @@ function showSources(text, isNegative, isDisabled, backFunction = undefined) {
       html: html,
     });
   }
-}
+};
 
 function viewModifiers(name, skill, groups) {
   let html = `<h5 class="font-w600 font-size-sm mb-1 text-combat-smoke">${name}</h5>`;
@@ -116,7 +121,7 @@ function viewModifiers(name, skill, groups) {
       group.forEach((description) => {
         const line = getElementHTMLDescriptionFormatter("h5", "font-w400 font-size-sm mb-1", false)(description);
         html += line.replace("</h5>", "");
-        html += ` <button class="btn-primary" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showSources('${description.text}', ${description.isNegative}, ${description.isDisabled}, mod.api.ShowSkillModifiers.showSkillModifiers);">more</button></h5>`;
+        html += ` <button class="btn-primary" style="border: 0px;" onclick="mod.api.ShowSkillModifiers.showSources('${encodeURIComponent(description.text)}', ${description.isNegative}, ${description.isDisabled}, mod.api.ShowSkillModifiers.showSkillModifiers);">more</button></h5>`;
       });
       html += "<br>";
     }
@@ -157,6 +162,15 @@ function mergedModifierID(modifierID) {
   return merged;
 }
 
+// 0: options.skill,
+// 1: options.damageType,
+// 2: options.realm,
+// 3: options.currency,
+// 4: options.category,
+// 5: options.action,
+// 6: options.subcategory,
+// 7: options.item,
+// 8: options.effectGroup,
 function filterModifiers(modifierID, skill) {
   const descriptions = [];
   const merged = mergedModifierID(modifierID);
@@ -164,13 +178,20 @@ function filterModifiers(modifierID, skill) {
     Array.from(merged.keys())
       .sort()
       .forEach((key) => {
+        const queryArr = key.split("-");
+
         let care = false;
-        if (key == globalQueryKey) {
-          care = true;
-        } else if (skill && key.startsWith(skill.id)) {
-          const queryArr = key.split("-");
-          care = queryArr[5].length == 0 || queryArr[7].length > 0;
+        if (queryArr[5].length == 0) {
+          // except ACTION.
+          // filter SKILL
+          if (key.startsWith("-")) {
+            care = true;
+          } else if (skill && key.startsWith(skill.id)) {
+            care = true;
+          }
         }
+
+        console.log(care, key, merged.get(key), merged.get(key).modValue.print())
 
         if (care) {
           const myModValue = merged.get(key);
@@ -217,7 +238,7 @@ function makeXP(skill, localID) {
 
   // A XP
   cares.push("melvorD:abyssalSkillXP");
-  if (!skill.isCombat) {
+  if (skill.isCombat) {
     cares.push("melvorD:abyssalCombatSkillXP");
   }
   if (skill == game.runecrafting) {
@@ -230,10 +251,22 @@ function makeXP(skill, localID) {
 function makeMasteryXP(skill, localID) {
   const cares = [];
   if (skill && skill.hasMastery) {
+    cares.push("melvorD:masteryPoolCap");
     cares.push("melvorD:masteryXP");
+    cares.push("melvorD:halveMasteryXP")
     // TODO: astrology
     if (skill == game.agility) {
       cares.push("melvorD:masteryXPFromNegativeObstacles");
+    }
+  }
+  return caresToDescriptions(cares, skill);
+}
+
+function makeCurrency(skill, localID) {
+  const cares = [];
+  if (skill) {
+    if (skill == game.agility || skill == game.thieving) {
+      cares.push(...["melvorD:currencyGainBasedOnProduct", "melvorD:currencyGain", "melvorD:flatCurrencyGain"]);
     }
   }
   return caresToDescriptions(cares, skill);
@@ -254,6 +287,7 @@ function makePreservation(skill, localID) {
       cares.push("melvorD:skillPreservationChance");
       cares.push("melvorD:bypassGlobalPreservationChance");
     }
+    cares.push("melvorD:skillPreservationCap");
 
     // CostReduction
     cares.push("melvorD:skillCostReduction");
@@ -276,6 +310,41 @@ function makeDouble(skill, localID) {
   if (skill == game.woodcutting) {
     cares.push("melvorD:halveWoodcuttingDoubleChance");
   }
+
+  if (skill) {
+    cares.push(
+      ...[
+        "melvorD:flatBasePrimaryProductQuantity",
+        "melvorD:flatBasePrimaryProductQuantityChance",
+        "melvorD:basePrimaryProductQuantity",
+        "melvorD:additionalPrimaryProductChance",
+        "melvorD:additional2PrimaryProductChance",
+        "melvorD:additional3PrimaryProductChance",
+        "melvorD:additional5PrimaryProductChance",
+        "melvorD:additional8PrimaryProductChance",
+        "melvorD:flatAdditionalPrimaryProductQuantity",
+        "melvorD:doubleItemsSkill",
+        "melvorD:bypassDoubleItemsSkill",
+      ]
+    );
+  }
+  return caresToDescriptions(cares, skill);
+}
+
+function makeAdditionalItems(skill, localID) {
+  const cares = [];
+  cares.push(
+    ...[
+      "melvorD:additionalRandomSkillItemChance",
+      "melvorD:additionalRandomSkillItemChancePerInterval",
+      "melvorD:flatAdditionalSkillItem",
+      "melvorD:additionalRandomGemChance",
+      "melvorD:additionalRandomAbyssalGemChance",
+      "melvorD:additionalRandomAbyssalGemChancePerInterval",
+      "melvorD:additionalRandomFragmentChance",
+      "melvorD:additionalRandomFiremakingOilChance",
+    ]
+  );
   return caresToDescriptions(cares, skill);
 }
 
@@ -286,8 +355,8 @@ function makeCharge(skill, localID) {
     cares.push("melvorD:potionChargePreservationChance");
 
     if (skill != skill.farming) {
-      cares.push('melvorD:summoningChargePreservationChance')
-      cares.push('melvorD:summoningChargePreservationChanceBypass');
+      cares.push("melvorD:summoningChargePreservationChance");
+      cares.push("melvorD:summoningChargePreservationChanceBypass");
     }
   }
 
@@ -300,6 +369,11 @@ function makeOthers(skill, localID) {
   // RandomProduct
   if (skill == game.woodcutting || skill == game.astrology || skill == game.firemaking) {
     cares.push(...["melvorD:randomProductChance", "melvorD:flatBaseRandomProductQuantity"]);
+  }
+
+  if (skill && skill.hasMastery) {
+    cares.push("melvorD:offItemChance");
+    cares.push("melvorD:flatMasteryTokens")
   }
 
   switch (skill) {
@@ -352,7 +426,6 @@ function makeOthers(skill, localID) {
       cares.push(
         ...[
           "melvorD:miningGemChance",
-          "melvorD:offItemChance",
           "melvorD:qualitySuperiorGemChance",
           "melvorD:abyssalGemChance",
           "melvorD:summoningSynergy_4_5",
