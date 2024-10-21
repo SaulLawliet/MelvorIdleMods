@@ -50,6 +50,30 @@ export function setup(ctx) {
         return undefined;
     }
 
+    const getSkillByRecipe = (recipe) => {
+        let skill = recipe.skill
+        if (recipe instanceof FarmingRecipe) {
+            skill = game.farming
+        } else if (recipe instanceof WoodcuttingTree) {
+            skill = game.woodcutting
+        } else if (recipe instanceof Fish) {
+            skill = game.fishing
+        } else if (recipe instanceof FiremakingLog) {
+            skill = game.firemaking
+        } else if (recipe instanceof MiningRock) {
+            skill = game.mining
+        } else if (recipe instanceof ThievingNPC) {
+            skill = game.thieving
+        } else if (recipe instanceof PaperMakingRecipe) {
+            skill = game.cartography
+        } else if (recipe instanceof ArchaeologyDigSite) {
+            skill = game.archaeology
+        } else if (recipe instanceof HarvestingVein) {
+            skill = game.harvesting
+        }
+        return skill
+    }
+
     const showItem = (item) => {
         let done = false;
         let data = item.name;
@@ -71,9 +95,25 @@ export function setup(ctx) {
             data = `${getLangString('HEX_MASTERY')} ${item.localID}`;
             done = item.awarded;
         } else if (item instanceof BasicSkillRecipe) {
-            if (item.skill instanceof SkillWithMastery) {
-                const masteryLevel = item.skill.getMasteryLevel(item)
-                data += ` (Lv.${masteryLevel})`;
+            const skill = getSkillByRecipe(item)
+            // if (!skill) {
+            //     console.log(item)
+            // }
+            if (item.level > skill.level) {
+                data += ` (Lv.${item.level})`
+            } else if (item.abyssalLevel > skill.abyssalLevel) {
+                data += ` (ALv.${item.abyssalLevel})`
+            }
+            if (data.indexOf('Lv.') < 0) {
+                if (item.skill instanceof SkillWithMastery) {
+                    const masteryLevel = skill.getMasteryLevel(item)
+                    data += ` (MLv.${masteryLevel})`;
+                }
+            }
+        } else if (item instanceof Monster) {
+            const area = game.getMonsterArea(item)
+            if (area && area.id != "melvorD:UnknownArea") {
+                data += ` (${area.name})`
             }
         }
 
@@ -272,8 +312,10 @@ export function setup(ctx) {
     const textClass = (data) => {
         if (data.startsWith('<del>')) {
             return 'text-warning'
-        } else if (data.indexOf('Lv.99') >= 0) {
+        } else if (data.indexOf('(MLv.99') >= 0) {
             return 'text-success'
+        } else if (data.indexOf('(Lv.') >= 0 || data.indexOf('(ALv.') >= 0) {
+            return 'text-danger'
         }
         return ''
     }
@@ -353,7 +395,7 @@ export function setup(ctx) {
     ctx.patch(BankSidebarMenuElement, 'initialize').after(function(returnValue, game) {
         const img = createElement("img", {
             classList: ["skill-icon-xxs"],
-            attributes: [["src", "https://cdn.melvor.net/core/v018/assets/media/main/question.svg"]],
+            attributes: [["src", cdnMedia("assets/media/main/question.svg")]],
         });
 
         const button = createElement('button', {
@@ -368,6 +410,16 @@ export function setup(ctx) {
         tippy('#sources-and-uses', {
             content: 'Click to View',
         });
+    });
+
+    // Township Tasks
+    ctx.patch(TownshipItemGoal, "getDescriptionHTML").replace(function (o) {
+      return (
+        o() +
+        `<a href="javascript:mod.api.ShowItemSourcesAndUses.showList('${
+          this.item.id
+        }');"><img class="skill-icon-xs mr-1" src="${cdnMedia("assets/media/main/question.svg")}"></a>`
+      );
     });
 
 }

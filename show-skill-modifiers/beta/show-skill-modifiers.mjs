@@ -19,16 +19,22 @@ const showSkillModifiers = () => {
 
   var groups = [];
 
-  if (skill) {
-    groups.push(makeCharge(skill, localID));
+  groups.push(makeCharge(skill, localID));
+  groups.push(makeXP(skill, localID));
 
-    groups.push(makeXP(skill, localID));
+  if (skill) {
     groups.push(makeMasteryXP(skill, localID));
     groups.push(makeDouble(skill, localID));
     groups.push(makeAdditionalItems(skill, localID));
     groups.push(makeInterval(skill, localID));
     groups.push(makePreservation(skill, localID));
     groups.push(makeCurrency(skill, localID))
+  }
+
+  if (localID == 'Combat') {
+    groups.push(makeForCombatDoubleAndCurrency())
+    groups.push(makeForCombatFood())
+    groups.push(makeForCombatDamage())
   }
 
   groups.push(makeOthers(skill, localID));
@@ -171,7 +177,7 @@ function mergedModifierID(modifierID) {
 // 6: options.subcategory,
 // 7: options.item,
 // 8: options.effectGroup,
-function filterModifiers(modifierID, skill) {
+function filterModifiers(modifierID, skills) {
   const descriptions = [];
   const merged = mergedModifierID(modifierID);
   if (merged) {
@@ -186,12 +192,17 @@ function filterModifiers(modifierID, skill) {
           // filter SKILL
           if (key.startsWith("-")) {
             care = true;
-          } else if (skill && key.startsWith(skill.id)) {
-            care = true;
+          } else if (skills && skills.length > 0) {
+            for (let skill of skills) {
+              if (skill && key.startsWith(skill.id)) {
+                care = true
+                break
+              }
+            }
           }
         }
 
-        console.log(care, key, merged.get(key), merged.get(key).modValue.print())
+        // console.log(care, key, merged.get(key), merged.get(key).modValue.print())
 
         if (care) {
           const myModValue = merged.get(key);
@@ -206,19 +217,32 @@ function filterModifiers(modifierID, skill) {
   return descriptions;
 }
 
-function caresToDescriptions(cares, skill) {
+// skillData: skill or skills
+function caresToDescriptions(cares, skillData) {
   const descriptions = [];
+  let skills = []
+  if (skillData) {
+    if (skillData instanceof Array) {
+      skills = skillData
+    } else {
+      skills.push(skillData)
+    }
+  }
+
   cares.forEach((care) => {
-    descriptions.push(...filterModifiers(care, skill));
+    descriptions.push(...filterModifiers(care, skills));
   });
 
   return descriptions;
 }
 
 function makeXP(skill, localID) {
+  const inCombat = localID === 'Combat' 
+  const isCombat = inCombat || (skill && skill.isCombat)
+
   const cares = [];
   cares.push("melvorD:skillXP");
-  if (!skill.isCombat) {
+  if (!isCombat) {
     cares.push("melvorD:nonCombatSkillXP");
   }
 
@@ -238,11 +262,15 @@ function makeXP(skill, localID) {
 
   // A XP
   cares.push("melvorD:abyssalSkillXP");
-  if (skill.isCombat) {
+  if (isCombat) {
     cares.push("melvorD:abyssalCombatSkillXP");
   }
   if (skill == game.runecrafting) {
     cares.push("melvorD:runecraftingBaseAXPForRunes");
+  }
+
+  if (inCombat) {
+    return caresToDescriptions(cares, [game.attack, game.strength, game.defence, game.hitpoints, game.ranged, game.altMagic, game.prayer, game.slayer, game.corruption])
   }
 
   return caresToDescriptions(cares, skill);
@@ -350,14 +378,41 @@ function makeAdditionalItems(skill, localID) {
 
 function makeCharge(skill, localID) {
   const cares = [];
-  if (skill && skill != skill.township) {
+  let potion = false
+  let summoning = false
+
+  if (skill) {
+    potion = skill != game.township
+    summoning = potion && skill != game.farming
+  } else if (localID === 'Combat') {
+    potion = true
+    summoning = true
+  }
+  if (potion) {
     cares.push("melvorD:flatPotionCharges");
     cares.push("melvorD:potionChargePreservationChance");
+  }
 
-    if (skill != skill.farming) {
-      cares.push("melvorD:summoningChargePreservationChance");
-      cares.push("melvorD:summoningChargePreservationChanceBypass");
-    }
+  if (summoning) {
+    cares.push("melvorD:summoningChargePreservationChance");
+    cares.push("melvorD:summoningChargePreservationChanceBypass");
+  }
+
+  if (localID === 'Combat') {
+    cares.push(...[
+      "melvorD:foodPreservationChance",
+      "melvorD:flatPrayerPointCost",
+      "melvorD:prayerPointPreservationChance",
+      "melvorD:unholyPrayerPointPreservationChance",
+      "melvorD:flatSoulPointsPerMonsterKill",
+      "melvorD:flatSoulPointCost",
+      "melvorD:soulPointCost",
+      "melvorD:soulPointPreservationChance",
+      "melvorD:soulPointPreservationChanceBypass",
+      "melvorD:permanentCorruptionCost",
+      "melvorD:ammoPreservationChance",
+      "melvorD:runePreservationChance"
+    ])
   }
 
   return caresToDescriptions(cares, skill);
@@ -652,6 +707,41 @@ function makeOthers(skill, localID) {
   }
 
   return caresToDescriptions(cares, skill);
+}
+
+function makeForCombatDoubleAndCurrency() {
+  const cares = [];
+  cares.push(...["melvorD:globalItemDoublingChance", "melvorD:combatLootDoublingChance"]);
+  cares.push(...["melvorD:currencyGainBasedOnProduct", "melvorD:currencyGain", "melvorD:flatCurrencyGain"]);
+
+  return caresToDescriptions(cares, null);
+}
+
+function makeForCombatFood() {
+  const cares = [];
+
+  cares.push(
+    ...["melvorD:autoEatEfficiency", "melvorD:autoEatThreshold", "melvorD:autoEatHPLimit", "melvorD:foodHealingValue"]
+  );
+  return caresToDescriptions(cares, null);
+}
+
+function makeForCombatDamage() {
+  const cares = [];
+
+  cares.push(
+    ...[
+      "melvorD:damageDealtToBosses",
+      "melvorD:damageDealtToSlayerTasks",
+      "melvorD:damageDealtToAllMonsters",
+      // "melvorD:meleeStrengthBonus",
+      // "melvorD:rangedStrengthBonus",
+      // "melvorD:magicDamageBonus",
+      // "melvorD:rangedStrengthBonusWith2HWeapon",
+      // "melvorD:magicDamageBonusWith2HWeapon",
+    ]
+  );
+  return caresToDescriptions(cares, null);
 }
 
 export { showSkillModifiers, showSources };
