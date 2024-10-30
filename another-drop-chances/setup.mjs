@@ -9,6 +9,7 @@ export function setup(ctx) {
         const getMonsterDropsHTML = eval(
             game.combat.getMonsterDropsHTML.toString()
                 .replace("getMonsterDropsHTML(monster,respectArea)", "(monster, respectArea)=>")
+                .replace("getMonsterDropsHTML(monster, respectArea)", "(monster, respectArea)=>")
                 .replaceAll("this.", "game.combat.")
                 .replaceAll("DEBUGENABLED", "true")
                 .replace('return dropText;', 'return `${dropText}${undiscoveredMark(drop.item)}`;')
