@@ -199,7 +199,7 @@ export function setup(ctx) {
             skillData.push([game.cartography.name, game.cartography.travelEventRegistry, {}, {'rewards.items': findArrayObj}]);
 
             skillData.push([game.archaeology.name, game.archaeology.actions, {}, {'artefacts.ObjectValues()': findDropArray}]);
-            skillData.push([game.archaeology.name, game.archaeology.museumRewards, {}, {'items': findArrayObj}]);
+            skillData.push([game.archaeology.name, game.archaeology.museum.rewards, {}, {'items': findArrayObj}]);
         }
 
         if (cloudManager.hasItAEntitlementAndIsEnabled) {
